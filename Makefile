@@ -4,7 +4,7 @@ GOBUILD=go build
 
 
 bindings:
-	cd build && go buildls  && ./build --json contracts --pkg bindings --out bindings
+	cd build && go build && ./build --json contracts --pkg bindings --out bindings
 
 clean:
 	rm ./build/bindings/*.go ./digiu-cross-chain ./build/build
