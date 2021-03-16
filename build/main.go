@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common/compiler"
 	"github.com/sirupsen/logrus"
-	"github.com/sivo4kin/digiu-cross-chain/bind"
+	"github.com/sivo4kin/digiu-cross-chain/accounts/abi/bind"
 	cli "gopkg.in/urfave/cli.v1"
 	"io/ioutil"
 	"os"
