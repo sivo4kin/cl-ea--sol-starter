@@ -1,15 +1,13 @@
 package test
 
 import (
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/sirupsen/logrus"
 	"github.com/sivo4kin/digiu-cross-chain/build/bindings"
-
-	//"github.com/ethereum/go-ethereum/eth/protocols/eth"
+	"github.com/sivo4kin/digiu-cross-chain/accounts/abi/bind"
 	"github.com/stretchr/testify/require"
 	"math/big"
 	"testing"
