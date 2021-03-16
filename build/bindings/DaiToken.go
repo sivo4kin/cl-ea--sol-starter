@@ -4,14 +4,14 @@
 package bindings
 
 import (
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strings"
-	//"github.com/sivo4kin/digiu-cross-chain/bind"
+
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -46,25 +46,6 @@ func DeployDaiToken(auth *bind.TransactOpts, backend bind.ContractBackend) (comm
 	return address, tx, &DaiToken{DaiTokenCaller: DaiTokenCaller{contract: contract}, DaiTokenTransactor: DaiTokenTransactor{contract: contract}, DaiTokenFilterer: DaiTokenFilterer{contract: contract}}, nil
 }
 
-// DeployDaiTokenSync deploys a new Ethereum contract and waits for receipt, binding an instance of DaiTokenSession to it.
-func DeployDaiTokenSync(session *bind.TransactSession, backend bind.ContractBackend) (*types.Transaction, *types.Receipt, *DaiTokenSession, error) {
-	parsed, err := abi.JSON(strings.NewReader(DaiTokenABI))
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	session.Lock()
-	address, tx, _, err := bind.DeployContract(session.TransactOpts, parsed, common.FromHex(DaiTokenBin), backend)
-	receipt, err := session.WaitTransaction(tx)
-	if err != nil {
-		session.Unlock()
-		return nil, nil, nil, err
-	}
-	session.TransactOpts.Nonce.Add(session.TransactOpts.Nonce, big.NewInt(1))
-	session.Unlock()
-	contractSession, err := NewDaiTokenSession(address, backend, session)
-	return tx, receipt, contractSession, err
-}
-
 // DaiToken is an auto generated Go binding around an Ethereum contract.
 type DaiToken struct {
 	DaiTokenCaller     // Read-only binding to the contract
@@ -90,9 +71,9 @@ type DaiTokenFilterer struct {
 // DaiTokenSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type DaiTokenSession struct {
-	Contract           *DaiToken // Generic contract binding to set the session for
-	transactionSession *bind.TransactSession
-	Address            common.Address
+	Contract     *DaiToken         // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
 // DaiTokenCallerSession is an auto generated read-only Go binding around an Ethereum contract,
@@ -160,18 +141,6 @@ func NewDaiTokenFilterer(address common.Address, filterer bind.ContractFilterer)
 	return &DaiTokenFilterer{contract: contract}, nil
 }
 
-func NewDaiTokenSession(address common.Address, backend bind.ContractBackend, transactionSession *bind.TransactSession) (*DaiTokenSession, error) {
-	DaiTokenInstance, err := NewDaiToken(address, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &DaiTokenSession{
-		Contract:           DaiTokenInstance,
-		transactionSession: transactionSession,
-		Address:            address,
-	}, nil
-}
-
 // bindDaiToken binds a generic wrapper to an already deployed contract.
 func bindDaiToken(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(DaiTokenABI))
@@ -185,7 +154,7 @@ func bindDaiToken(address common.Address, caller bind.ContractCaller, transactor
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_DaiToken *DaiTokenRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_DaiToken *DaiTokenRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _DaiToken.Contract.DaiTokenCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -204,7 +173,7 @@ func (_DaiToken *DaiTokenRaw) Transact(opts *bind.TransactOpts, method string, p
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_DaiToken *DaiTokenCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_DaiToken *DaiTokenCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _DaiToken.Contract.contract.Call(opts, result, method, params...)
 }
 
@@ -223,19 +192,24 @@ func (_DaiToken *DaiTokenTransactorRaw) Transact(opts *bind.TransactOpts, method
 //
 // Solidity: function allowance(address owner, address spender) view returns(uint256)
 func (_DaiToken *DaiTokenCaller) Allowance(opts *bind.CallOpts, owner common.Address, spender common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _DaiToken.contract.Call(opts, out, "allowance", owner, spender)
-	return *ret0, err
+	var out []interface{}
+	err := _DaiToken.contract.Call(opts, &out, "allowance", owner, spender)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // Allowance is a free data retrieval call binding the contract method 0xdd62ed3e.
 //
 // Solidity: function allowance(address owner, address spender) view returns(uint256)
 func (_DaiToken *DaiTokenSession) Allowance(owner common.Address, spender common.Address) (*big.Int, error) {
-	return _DaiToken.Contract.Allowance(_DaiToken.transactionSession.CallOpts, owner, spender)
+	return _DaiToken.Contract.Allowance(&_DaiToken.CallOpts, owner, spender)
 }
 
 // Allowance is a free data retrieval call binding the contract method 0xdd62ed3e.
@@ -249,19 +223,24 @@ func (_DaiToken *DaiTokenCallerSession) Allowance(owner common.Address, spender 
 //
 // Solidity: function balanceOf(address account) view returns(uint256)
 func (_DaiToken *DaiTokenCaller) BalanceOf(opts *bind.CallOpts, account common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _DaiToken.contract.Call(opts, out, "balanceOf", account)
-	return *ret0, err
+	var out []interface{}
+	err := _DaiToken.contract.Call(opts, &out, "balanceOf", account)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
 //
 // Solidity: function balanceOf(address account) view returns(uint256)
 func (_DaiToken *DaiTokenSession) BalanceOf(account common.Address) (*big.Int, error) {
-	return _DaiToken.Contract.BalanceOf(_DaiToken.transactionSession.CallOpts, account)
+	return _DaiToken.Contract.BalanceOf(&_DaiToken.CallOpts, account)
 }
 
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
@@ -275,19 +254,24 @@ func (_DaiToken *DaiTokenCallerSession) BalanceOf(account common.Address) (*big.
 //
 // Solidity: function decimals() view returns(uint8)
 func (_DaiToken *DaiTokenCaller) Decimals(opts *bind.CallOpts) (uint8, error) {
-	var (
-		ret0 = new(uint8)
-	)
-	out := ret0
-	err := _DaiToken.contract.Call(opts, out, "decimals")
-	return *ret0, err
+	var out []interface{}
+	err := _DaiToken.contract.Call(opts, &out, "decimals")
+
+	if err != nil {
+		return *new(uint8), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint8)).(*uint8)
+
+	return out0, err
+
 }
 
 // Decimals is a free data retrieval call binding the contract method 0x313ce567.
 //
 // Solidity: function decimals() view returns(uint8)
 func (_DaiToken *DaiTokenSession) Decimals() (uint8, error) {
-	return _DaiToken.Contract.Decimals(_DaiToken.transactionSession.CallOpts)
+	return _DaiToken.Contract.Decimals(&_DaiToken.CallOpts)
 }
 
 // Decimals is a free data retrieval call binding the contract method 0x313ce567.
@@ -301,19 +285,24 @@ func (_DaiToken *DaiTokenCallerSession) Decimals() (uint8, error) {
 //
 // Solidity: function name() view returns(string)
 func (_DaiToken *DaiTokenCaller) Name(opts *bind.CallOpts) (string, error) {
-	var (
-		ret0 = new(string)
-	)
-	out := ret0
-	err := _DaiToken.contract.Call(opts, out, "name")
-	return *ret0, err
+	var out []interface{}
+	err := _DaiToken.contract.Call(opts, &out, "name")
+
+	if err != nil {
+		return *new(string), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(string)).(*string)
+
+	return out0, err
+
 }
 
 // Name is a free data retrieval call binding the contract method 0x06fdde03.
 //
 // Solidity: function name() view returns(string)
 func (_DaiToken *DaiTokenSession) Name() (string, error) {
-	return _DaiToken.Contract.Name(_DaiToken.transactionSession.CallOpts)
+	return _DaiToken.Contract.Name(&_DaiToken.CallOpts)
 }
 
 // Name is a free data retrieval call binding the contract method 0x06fdde03.
@@ -327,19 +316,24 @@ func (_DaiToken *DaiTokenCallerSession) Name() (string, error) {
 //
 // Solidity: function symbol() view returns(string)
 func (_DaiToken *DaiTokenCaller) Symbol(opts *bind.CallOpts) (string, error) {
-	var (
-		ret0 = new(string)
-	)
-	out := ret0
-	err := _DaiToken.contract.Call(opts, out, "symbol")
-	return *ret0, err
+	var out []interface{}
+	err := _DaiToken.contract.Call(opts, &out, "symbol")
+
+	if err != nil {
+		return *new(string), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(string)).(*string)
+
+	return out0, err
+
 }
 
 // Symbol is a free data retrieval call binding the contract method 0x95d89b41.
 //
 // Solidity: function symbol() view returns(string)
 func (_DaiToken *DaiTokenSession) Symbol() (string, error) {
-	return _DaiToken.Contract.Symbol(_DaiToken.transactionSession.CallOpts)
+	return _DaiToken.Contract.Symbol(&_DaiToken.CallOpts)
 }
 
 // Symbol is a free data retrieval call binding the contract method 0x95d89b41.
@@ -353,19 +347,24 @@ func (_DaiToken *DaiTokenCallerSession) Symbol() (string, error) {
 //
 // Solidity: function totalSupply() view returns(uint256)
 func (_DaiToken *DaiTokenCaller) TotalSupply(opts *bind.CallOpts) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _DaiToken.contract.Call(opts, out, "totalSupply")
-	return *ret0, err
+	var out []interface{}
+	err := _DaiToken.contract.Call(opts, &out, "totalSupply")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // TotalSupply is a free data retrieval call binding the contract method 0x18160ddd.
 //
 // Solidity: function totalSupply() view returns(uint256)
 func (_DaiToken *DaiTokenSession) TotalSupply() (*big.Int, error) {
-	return _DaiToken.Contract.TotalSupply(_DaiToken.transactionSession.CallOpts)
+	return _DaiToken.Contract.TotalSupply(&_DaiToken.CallOpts)
 }
 
 // TotalSupply is a free data retrieval call binding the contract method 0x18160ddd.
@@ -382,62 +381,17 @@ func (_DaiToken *DaiTokenTransactor) Approve(opts *bind.TransactOpts, spender co
 	return _DaiToken.contract.Transact(opts, "approve", spender, amount)
 }
 
-func (_DaiToken *DaiTokenTransactor) ApproveRawTx(opts *bind.TransactOpts, spender common.Address, amount *big.Int) (*types.Transaction, error) {
-	return _DaiToken.contract.RawTx(opts, "approve", spender, amount)
-}
-
 // Approve is a paid mutator transaction binding the contract method 0x095ea7b3.
-// Will wait for tx receipt
 //
 // Solidity: function approve(address spender, uint256 amount) returns(bool)
-func (_DaiToken *DaiTokenSession) Approve(spender common.Address, amount *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_DaiToken.transactionSession.Lock()
-	tx, err := _DaiToken.Contract.Approve(_DaiToken.transactionSession.TransactOpts, spender, amount)
-	if err != nil {
-		_DaiToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_DaiToken.transactionSession.TransactOpts.Nonce.Add(_DaiToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DaiToken.transactionSession.Unlock()
-	receipt, err := _DaiToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// Approve returns raw transaction bound to the contract method 0x095ea7b3.
-//
-// Solidity: function approve(address spender, uint256 amount) returns(bool)
-func (_DaiToken *DaiTokenSession) ApproveRawTx(spender common.Address, amount *big.Int) (*types.Transaction, error) {
-	tx, err := _DaiToken.Contract.ApproveRawTx(_DaiToken.transactionSession.TransactOpts, spender, amount)
-	return tx, err
-}
-
-// Approve is a paid mutator transaction binding the contract method 0x095ea7b3.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function approve(address spender, uint256 amount) returns(bool)
-func (_DaiToken *DaiTokenSession) ApproveAsync(receiptCh chan *types.ReceiptResult, spender common.Address, amount *big.Int) (*types.Transaction, error) {
-	_DaiToken.transactionSession.Lock()
-	tx, err := _DaiToken.Contract.Approve(_DaiToken.transactionSession.TransactOpts, spender, amount)
-	if err != nil {
-		_DaiToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_DaiToken.transactionSession.TransactOpts.Nonce.Add(_DaiToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DaiToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _DaiToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_DaiToken *DaiTokenSession) Approve(spender common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _DaiToken.Contract.Approve(&_DaiToken.TransactOpts, spender, amount)
 }
 
 // Approve is a paid mutator transaction binding the contract method 0x095ea7b3.
 //
 // Solidity: function approve(address spender, uint256 amount) returns(bool)
-func (_DaiToken *DaiTokenTransactorSession) Approve(wait bool, spender common.Address, amount *big.Int) (*types.Transaction, error) {
+func (_DaiToken *DaiTokenTransactorSession) Approve(spender common.Address, amount *big.Int) (*types.Transaction, error) {
 	return _DaiToken.Contract.Approve(&_DaiToken.TransactOpts, spender, amount)
 }
 
@@ -448,62 +402,17 @@ func (_DaiToken *DaiTokenTransactor) Burn(opts *bind.TransactOpts, _account comm
 	return _DaiToken.contract.Transact(opts, "burn", _account, _amount)
 }
 
-func (_DaiToken *DaiTokenTransactor) BurnRawTx(opts *bind.TransactOpts, _account common.Address, _amount *big.Int) (*types.Transaction, error) {
-	return _DaiToken.contract.RawTx(opts, "burn", _account, _amount)
-}
-
 // Burn is a paid mutator transaction binding the contract method 0x9dc29fac.
-// Will wait for tx receipt
 //
 // Solidity: function burn(address _account, uint256 _amount) returns()
-func (_DaiToken *DaiTokenSession) Burn(_account common.Address, _amount *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_DaiToken.transactionSession.Lock()
-	tx, err := _DaiToken.Contract.Burn(_DaiToken.transactionSession.TransactOpts, _account, _amount)
-	if err != nil {
-		_DaiToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_DaiToken.transactionSession.TransactOpts.Nonce.Add(_DaiToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DaiToken.transactionSession.Unlock()
-	receipt, err := _DaiToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// Burn returns raw transaction bound to the contract method 0x9dc29fac.
-//
-// Solidity: function burn(address _account, uint256 _amount) returns()
-func (_DaiToken *DaiTokenSession) BurnRawTx(_account common.Address, _amount *big.Int) (*types.Transaction, error) {
-	tx, err := _DaiToken.Contract.BurnRawTx(_DaiToken.transactionSession.TransactOpts, _account, _amount)
-	return tx, err
-}
-
-// Burn is a paid mutator transaction binding the contract method 0x9dc29fac.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function burn(address _account, uint256 _amount) returns()
-func (_DaiToken *DaiTokenSession) BurnAsync(receiptCh chan *types.ReceiptResult, _account common.Address, _amount *big.Int) (*types.Transaction, error) {
-	_DaiToken.transactionSession.Lock()
-	tx, err := _DaiToken.Contract.Burn(_DaiToken.transactionSession.TransactOpts, _account, _amount)
-	if err != nil {
-		_DaiToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_DaiToken.transactionSession.TransactOpts.Nonce.Add(_DaiToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DaiToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _DaiToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_DaiToken *DaiTokenSession) Burn(_account common.Address, _amount *big.Int) (*types.Transaction, error) {
+	return _DaiToken.Contract.Burn(&_DaiToken.TransactOpts, _account, _amount)
 }
 
 // Burn is a paid mutator transaction binding the contract method 0x9dc29fac.
 //
 // Solidity: function burn(address _account, uint256 _amount) returns()
-func (_DaiToken *DaiTokenTransactorSession) Burn(wait bool, _account common.Address, _amount *big.Int) (*types.Transaction, error) {
+func (_DaiToken *DaiTokenTransactorSession) Burn(_account common.Address, _amount *big.Int) (*types.Transaction, error) {
 	return _DaiToken.Contract.Burn(&_DaiToken.TransactOpts, _account, _amount)
 }
 
@@ -514,62 +423,17 @@ func (_DaiToken *DaiTokenTransactor) DecreaseAllowance(opts *bind.TransactOpts, 
 	return _DaiToken.contract.Transact(opts, "decreaseAllowance", spender, subtractedValue)
 }
 
-func (_DaiToken *DaiTokenTransactor) DecreaseAllowanceRawTx(opts *bind.TransactOpts, spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
-	return _DaiToken.contract.RawTx(opts, "decreaseAllowance", spender, subtractedValue)
-}
-
 // DecreaseAllowance is a paid mutator transaction binding the contract method 0xa457c2d7.
-// Will wait for tx receipt
 //
 // Solidity: function decreaseAllowance(address spender, uint256 subtractedValue) returns(bool)
-func (_DaiToken *DaiTokenSession) DecreaseAllowance(spender common.Address, subtractedValue *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_DaiToken.transactionSession.Lock()
-	tx, err := _DaiToken.Contract.DecreaseAllowance(_DaiToken.transactionSession.TransactOpts, spender, subtractedValue)
-	if err != nil {
-		_DaiToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_DaiToken.transactionSession.TransactOpts.Nonce.Add(_DaiToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DaiToken.transactionSession.Unlock()
-	receipt, err := _DaiToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// DecreaseAllowance returns raw transaction bound to the contract method 0xa457c2d7.
-//
-// Solidity: function decreaseAllowance(address spender, uint256 subtractedValue) returns(bool)
-func (_DaiToken *DaiTokenSession) DecreaseAllowanceRawTx(spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
-	tx, err := _DaiToken.Contract.DecreaseAllowanceRawTx(_DaiToken.transactionSession.TransactOpts, spender, subtractedValue)
-	return tx, err
-}
-
-// DecreaseAllowance is a paid mutator transaction binding the contract method 0xa457c2d7.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function decreaseAllowance(address spender, uint256 subtractedValue) returns(bool)
-func (_DaiToken *DaiTokenSession) DecreaseAllowanceAsync(receiptCh chan *types.ReceiptResult, spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
-	_DaiToken.transactionSession.Lock()
-	tx, err := _DaiToken.Contract.DecreaseAllowance(_DaiToken.transactionSession.TransactOpts, spender, subtractedValue)
-	if err != nil {
-		_DaiToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_DaiToken.transactionSession.TransactOpts.Nonce.Add(_DaiToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DaiToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _DaiToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_DaiToken *DaiTokenSession) DecreaseAllowance(spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
+	return _DaiToken.Contract.DecreaseAllowance(&_DaiToken.TransactOpts, spender, subtractedValue)
 }
 
 // DecreaseAllowance is a paid mutator transaction binding the contract method 0xa457c2d7.
 //
 // Solidity: function decreaseAllowance(address spender, uint256 subtractedValue) returns(bool)
-func (_DaiToken *DaiTokenTransactorSession) DecreaseAllowance(wait bool, spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
+func (_DaiToken *DaiTokenTransactorSession) DecreaseAllowance(spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
 	return _DaiToken.Contract.DecreaseAllowance(&_DaiToken.TransactOpts, spender, subtractedValue)
 }
 
@@ -580,62 +444,17 @@ func (_DaiToken *DaiTokenTransactor) IncreaseAllowance(opts *bind.TransactOpts, 
 	return _DaiToken.contract.Transact(opts, "increaseAllowance", spender, addedValue)
 }
 
-func (_DaiToken *DaiTokenTransactor) IncreaseAllowanceRawTx(opts *bind.TransactOpts, spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
-	return _DaiToken.contract.RawTx(opts, "increaseAllowance", spender, addedValue)
-}
-
 // IncreaseAllowance is a paid mutator transaction binding the contract method 0x39509351.
-// Will wait for tx receipt
 //
 // Solidity: function increaseAllowance(address spender, uint256 addedValue) returns(bool)
-func (_DaiToken *DaiTokenSession) IncreaseAllowance(spender common.Address, addedValue *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_DaiToken.transactionSession.Lock()
-	tx, err := _DaiToken.Contract.IncreaseAllowance(_DaiToken.transactionSession.TransactOpts, spender, addedValue)
-	if err != nil {
-		_DaiToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_DaiToken.transactionSession.TransactOpts.Nonce.Add(_DaiToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DaiToken.transactionSession.Unlock()
-	receipt, err := _DaiToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// IncreaseAllowance returns raw transaction bound to the contract method 0x39509351.
-//
-// Solidity: function increaseAllowance(address spender, uint256 addedValue) returns(bool)
-func (_DaiToken *DaiTokenSession) IncreaseAllowanceRawTx(spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
-	tx, err := _DaiToken.Contract.IncreaseAllowanceRawTx(_DaiToken.transactionSession.TransactOpts, spender, addedValue)
-	return tx, err
-}
-
-// IncreaseAllowance is a paid mutator transaction binding the contract method 0x39509351.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function increaseAllowance(address spender, uint256 addedValue) returns(bool)
-func (_DaiToken *DaiTokenSession) IncreaseAllowanceAsync(receiptCh chan *types.ReceiptResult, spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
-	_DaiToken.transactionSession.Lock()
-	tx, err := _DaiToken.Contract.IncreaseAllowance(_DaiToken.transactionSession.TransactOpts, spender, addedValue)
-	if err != nil {
-		_DaiToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_DaiToken.transactionSession.TransactOpts.Nonce.Add(_DaiToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DaiToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _DaiToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_DaiToken *DaiTokenSession) IncreaseAllowance(spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
+	return _DaiToken.Contract.IncreaseAllowance(&_DaiToken.TransactOpts, spender, addedValue)
 }
 
 // IncreaseAllowance is a paid mutator transaction binding the contract method 0x39509351.
 //
 // Solidity: function increaseAllowance(address spender, uint256 addedValue) returns(bool)
-func (_DaiToken *DaiTokenTransactorSession) IncreaseAllowance(wait bool, spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
+func (_DaiToken *DaiTokenTransactorSession) IncreaseAllowance(spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
 	return _DaiToken.Contract.IncreaseAllowance(&_DaiToken.TransactOpts, spender, addedValue)
 }
 
@@ -646,62 +465,17 @@ func (_DaiToken *DaiTokenTransactor) Mint(opts *bind.TransactOpts, _account comm
 	return _DaiToken.contract.Transact(opts, "mint", _account, _amount)
 }
 
-func (_DaiToken *DaiTokenTransactor) MintRawTx(opts *bind.TransactOpts, _account common.Address, _amount *big.Int) (*types.Transaction, error) {
-	return _DaiToken.contract.RawTx(opts, "mint", _account, _amount)
-}
-
 // Mint is a paid mutator transaction binding the contract method 0x40c10f19.
-// Will wait for tx receipt
 //
 // Solidity: function mint(address _account, uint256 _amount) returns()
-func (_DaiToken *DaiTokenSession) Mint(_account common.Address, _amount *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_DaiToken.transactionSession.Lock()
-	tx, err := _DaiToken.Contract.Mint(_DaiToken.transactionSession.TransactOpts, _account, _amount)
-	if err != nil {
-		_DaiToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_DaiToken.transactionSession.TransactOpts.Nonce.Add(_DaiToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DaiToken.transactionSession.Unlock()
-	receipt, err := _DaiToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// Mint returns raw transaction bound to the contract method 0x40c10f19.
-//
-// Solidity: function mint(address _account, uint256 _amount) returns()
-func (_DaiToken *DaiTokenSession) MintRawTx(_account common.Address, _amount *big.Int) (*types.Transaction, error) {
-	tx, err := _DaiToken.Contract.MintRawTx(_DaiToken.transactionSession.TransactOpts, _account, _amount)
-	return tx, err
-}
-
-// Mint is a paid mutator transaction binding the contract method 0x40c10f19.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function mint(address _account, uint256 _amount) returns()
-func (_DaiToken *DaiTokenSession) MintAsync(receiptCh chan *types.ReceiptResult, _account common.Address, _amount *big.Int) (*types.Transaction, error) {
-	_DaiToken.transactionSession.Lock()
-	tx, err := _DaiToken.Contract.Mint(_DaiToken.transactionSession.TransactOpts, _account, _amount)
-	if err != nil {
-		_DaiToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_DaiToken.transactionSession.TransactOpts.Nonce.Add(_DaiToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DaiToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _DaiToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_DaiToken *DaiTokenSession) Mint(_account common.Address, _amount *big.Int) (*types.Transaction, error) {
+	return _DaiToken.Contract.Mint(&_DaiToken.TransactOpts, _account, _amount)
 }
 
 // Mint is a paid mutator transaction binding the contract method 0x40c10f19.
 //
 // Solidity: function mint(address _account, uint256 _amount) returns()
-func (_DaiToken *DaiTokenTransactorSession) Mint(wait bool, _account common.Address, _amount *big.Int) (*types.Transaction, error) {
+func (_DaiToken *DaiTokenTransactorSession) Mint(_account common.Address, _amount *big.Int) (*types.Transaction, error) {
 	return _DaiToken.Contract.Mint(&_DaiToken.TransactOpts, _account, _amount)
 }
 
@@ -712,62 +486,17 @@ func (_DaiToken *DaiTokenTransactor) Transfer(opts *bind.TransactOpts, recipient
 	return _DaiToken.contract.Transact(opts, "transfer", recipient, amount)
 }
 
-func (_DaiToken *DaiTokenTransactor) TransferRawTx(opts *bind.TransactOpts, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	return _DaiToken.contract.RawTx(opts, "transfer", recipient, amount)
-}
-
 // Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
-// Will wait for tx receipt
 //
 // Solidity: function transfer(address recipient, uint256 amount) returns(bool)
-func (_DaiToken *DaiTokenSession) Transfer(recipient common.Address, amount *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_DaiToken.transactionSession.Lock()
-	tx, err := _DaiToken.Contract.Transfer(_DaiToken.transactionSession.TransactOpts, recipient, amount)
-	if err != nil {
-		_DaiToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_DaiToken.transactionSession.TransactOpts.Nonce.Add(_DaiToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DaiToken.transactionSession.Unlock()
-	receipt, err := _DaiToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// Transfer returns raw transaction bound to the contract method 0xa9059cbb.
-//
-// Solidity: function transfer(address recipient, uint256 amount) returns(bool)
-func (_DaiToken *DaiTokenSession) TransferRawTx(recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	tx, err := _DaiToken.Contract.TransferRawTx(_DaiToken.transactionSession.TransactOpts, recipient, amount)
-	return tx, err
-}
-
-// Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function transfer(address recipient, uint256 amount) returns(bool)
-func (_DaiToken *DaiTokenSession) TransferAsync(receiptCh chan *types.ReceiptResult, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	_DaiToken.transactionSession.Lock()
-	tx, err := _DaiToken.Contract.Transfer(_DaiToken.transactionSession.TransactOpts, recipient, amount)
-	if err != nil {
-		_DaiToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_DaiToken.transactionSession.TransactOpts.Nonce.Add(_DaiToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DaiToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _DaiToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_DaiToken *DaiTokenSession) Transfer(recipient common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _DaiToken.Contract.Transfer(&_DaiToken.TransactOpts, recipient, amount)
 }
 
 // Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
 //
 // Solidity: function transfer(address recipient, uint256 amount) returns(bool)
-func (_DaiToken *DaiTokenTransactorSession) Transfer(wait bool, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
+func (_DaiToken *DaiTokenTransactorSession) Transfer(recipient common.Address, amount *big.Int) (*types.Transaction, error) {
 	return _DaiToken.Contract.Transfer(&_DaiToken.TransactOpts, recipient, amount)
 }
 
@@ -778,62 +507,17 @@ func (_DaiToken *DaiTokenTransactor) TransferFrom(opts *bind.TransactOpts, sende
 	return _DaiToken.contract.Transact(opts, "transferFrom", sender, recipient, amount)
 }
 
-func (_DaiToken *DaiTokenTransactor) TransferFromRawTx(opts *bind.TransactOpts, sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	return _DaiToken.contract.RawTx(opts, "transferFrom", sender, recipient, amount)
-}
-
 // TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
-// Will wait for tx receipt
 //
 // Solidity: function transferFrom(address sender, address recipient, uint256 amount) returns(bool)
-func (_DaiToken *DaiTokenSession) TransferFrom(sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_DaiToken.transactionSession.Lock()
-	tx, err := _DaiToken.Contract.TransferFrom(_DaiToken.transactionSession.TransactOpts, sender, recipient, amount)
-	if err != nil {
-		_DaiToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_DaiToken.transactionSession.TransactOpts.Nonce.Add(_DaiToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DaiToken.transactionSession.Unlock()
-	receipt, err := _DaiToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// TransferFrom returns raw transaction bound to the contract method 0x23b872dd.
-//
-// Solidity: function transferFrom(address sender, address recipient, uint256 amount) returns(bool)
-func (_DaiToken *DaiTokenSession) TransferFromRawTx(sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	tx, err := _DaiToken.Contract.TransferFromRawTx(_DaiToken.transactionSession.TransactOpts, sender, recipient, amount)
-	return tx, err
-}
-
-// TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function transferFrom(address sender, address recipient, uint256 amount) returns(bool)
-func (_DaiToken *DaiTokenSession) TransferFromAsync(receiptCh chan *types.ReceiptResult, sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	_DaiToken.transactionSession.Lock()
-	tx, err := _DaiToken.Contract.TransferFrom(_DaiToken.transactionSession.TransactOpts, sender, recipient, amount)
-	if err != nil {
-		_DaiToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_DaiToken.transactionSession.TransactOpts.Nonce.Add(_DaiToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DaiToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _DaiToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_DaiToken *DaiTokenSession) TransferFrom(sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _DaiToken.Contract.TransferFrom(&_DaiToken.TransactOpts, sender, recipient, amount)
 }
 
 // TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
 //
 // Solidity: function transferFrom(address sender, address recipient, uint256 amount) returns(bool)
-func (_DaiToken *DaiTokenTransactorSession) TransferFrom(wait bool, sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
+func (_DaiToken *DaiTokenTransactorSession) TransferFrom(sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
 	return _DaiToken.Contract.TransferFrom(&_DaiToken.TransactOpts, sender, recipient, amount)
 }
 
@@ -987,6 +671,7 @@ func (_DaiToken *DaiTokenFilterer) ParseApproval(log types.Log) (*DaiTokenApprov
 	if err := _DaiToken.contract.UnpackLog(event, "Approval", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -1140,5 +825,6 @@ func (_DaiToken *DaiTokenFilterer) ParseTransfer(log types.Log) (*DaiTokenTransf
 	if err := _DaiToken.contract.UnpackLog(event, "Transfer", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }

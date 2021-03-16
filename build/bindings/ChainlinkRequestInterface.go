@@ -4,14 +4,14 @@
 package bindings
 
 import (
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strings"
-	//"github.com/sivo4kin/digiu-cross-chain/bind"
+
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -54,9 +54,9 @@ type ChainlinkRequestInterfaceFilterer struct {
 // ChainlinkRequestInterfaceSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type ChainlinkRequestInterfaceSession struct {
-	Contract           *ChainlinkRequestInterface // Generic contract binding to set the session for
-	transactionSession *bind.TransactSession
-	Address            common.Address
+	Contract     *ChainlinkRequestInterface // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts              // Call options to use throughout this session
+	TransactOpts bind.TransactOpts          // Transaction auth options to use throughout this session
 }
 
 // ChainlinkRequestInterfaceCallerSession is an auto generated read-only Go binding around an Ethereum contract,
@@ -124,18 +124,6 @@ func NewChainlinkRequestInterfaceFilterer(address common.Address, filterer bind.
 	return &ChainlinkRequestInterfaceFilterer{contract: contract}, nil
 }
 
-func NewChainlinkRequestInterfaceSession(address common.Address, backend bind.ContractBackend, transactionSession *bind.TransactSession) (*ChainlinkRequestInterfaceSession, error) {
-	ChainlinkRequestInterfaceInstance, err := NewChainlinkRequestInterface(address, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &ChainlinkRequestInterfaceSession{
-		Contract:           ChainlinkRequestInterfaceInstance,
-		transactionSession: transactionSession,
-		Address:            address,
-	}, nil
-}
-
 // bindChainlinkRequestInterface binds a generic wrapper to an already deployed contract.
 func bindChainlinkRequestInterface(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(ChainlinkRequestInterfaceABI))
@@ -149,7 +137,7 @@ func bindChainlinkRequestInterface(address common.Address, caller bind.ContractC
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_ChainlinkRequestInterface *ChainlinkRequestInterfaceRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_ChainlinkRequestInterface *ChainlinkRequestInterfaceRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _ChainlinkRequestInterface.Contract.ChainlinkRequestInterfaceCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -168,7 +156,7 @@ func (_ChainlinkRequestInterface *ChainlinkRequestInterfaceRaw) Transact(opts *b
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_ChainlinkRequestInterface *ChainlinkRequestInterfaceCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_ChainlinkRequestInterface *ChainlinkRequestInterfaceCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _ChainlinkRequestInterface.Contract.contract.Call(opts, result, method, params...)
 }
 
@@ -190,62 +178,17 @@ func (_ChainlinkRequestInterface *ChainlinkRequestInterfaceTransactor) CancelOra
 	return _ChainlinkRequestInterface.contract.Transact(opts, "cancelOracleRequest", requestId, payment, callbackFunctionId, expiration)
 }
 
-func (_ChainlinkRequestInterface *ChainlinkRequestInterfaceTransactor) CancelOracleRequestRawTx(opts *bind.TransactOpts, requestId [32]byte, payment *big.Int, callbackFunctionId [4]byte, expiration *big.Int) (*types.Transaction, error) {
-	return _ChainlinkRequestInterface.contract.RawTx(opts, "cancelOracleRequest", requestId, payment, callbackFunctionId, expiration)
-}
-
 // CancelOracleRequest is a paid mutator transaction binding the contract method 0x6ee4d553.
-// Will wait for tx receipt
 //
 // Solidity: function cancelOracleRequest(bytes32 requestId, uint256 payment, bytes4 callbackFunctionId, uint256 expiration) returns()
-func (_ChainlinkRequestInterface *ChainlinkRequestInterfaceSession) CancelOracleRequest(requestId [32]byte, payment *big.Int, callbackFunctionId [4]byte, expiration *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_ChainlinkRequestInterface.transactionSession.Lock()
-	tx, err := _ChainlinkRequestInterface.Contract.CancelOracleRequest(_ChainlinkRequestInterface.transactionSession.TransactOpts, requestId, payment, callbackFunctionId, expiration)
-	if err != nil {
-		_ChainlinkRequestInterface.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_ChainlinkRequestInterface.transactionSession.TransactOpts.Nonce.Add(_ChainlinkRequestInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_ChainlinkRequestInterface.transactionSession.Unlock()
-	receipt, err := _ChainlinkRequestInterface.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// CancelOracleRequest returns raw transaction bound to the contract method 0x6ee4d553.
-//
-// Solidity: function cancelOracleRequest(bytes32 requestId, uint256 payment, bytes4 callbackFunctionId, uint256 expiration) returns()
-func (_ChainlinkRequestInterface *ChainlinkRequestInterfaceSession) CancelOracleRequestRawTx(requestId [32]byte, payment *big.Int, callbackFunctionId [4]byte, expiration *big.Int) (*types.Transaction, error) {
-	tx, err := _ChainlinkRequestInterface.Contract.CancelOracleRequestRawTx(_ChainlinkRequestInterface.transactionSession.TransactOpts, requestId, payment, callbackFunctionId, expiration)
-	return tx, err
-}
-
-// CancelOracleRequest is a paid mutator transaction binding the contract method 0x6ee4d553.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function cancelOracleRequest(bytes32 requestId, uint256 payment, bytes4 callbackFunctionId, uint256 expiration) returns()
-func (_ChainlinkRequestInterface *ChainlinkRequestInterfaceSession) CancelOracleRequestAsync(receiptCh chan *types.ReceiptResult, requestId [32]byte, payment *big.Int, callbackFunctionId [4]byte, expiration *big.Int) (*types.Transaction, error) {
-	_ChainlinkRequestInterface.transactionSession.Lock()
-	tx, err := _ChainlinkRequestInterface.Contract.CancelOracleRequest(_ChainlinkRequestInterface.transactionSession.TransactOpts, requestId, payment, callbackFunctionId, expiration)
-	if err != nil {
-		_ChainlinkRequestInterface.transactionSession.Unlock()
-		return nil, err
-	}
-	_ChainlinkRequestInterface.transactionSession.TransactOpts.Nonce.Add(_ChainlinkRequestInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_ChainlinkRequestInterface.transactionSession.Unlock()
-	go func() {
-		receipt, err := _ChainlinkRequestInterface.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_ChainlinkRequestInterface *ChainlinkRequestInterfaceSession) CancelOracleRequest(requestId [32]byte, payment *big.Int, callbackFunctionId [4]byte, expiration *big.Int) (*types.Transaction, error) {
+	return _ChainlinkRequestInterface.Contract.CancelOracleRequest(&_ChainlinkRequestInterface.TransactOpts, requestId, payment, callbackFunctionId, expiration)
 }
 
 // CancelOracleRequest is a paid mutator transaction binding the contract method 0x6ee4d553.
 //
 // Solidity: function cancelOracleRequest(bytes32 requestId, uint256 payment, bytes4 callbackFunctionId, uint256 expiration) returns()
-func (_ChainlinkRequestInterface *ChainlinkRequestInterfaceTransactorSession) CancelOracleRequest(wait bool, requestId [32]byte, payment *big.Int, callbackFunctionId [4]byte, expiration *big.Int) (*types.Transaction, error) {
+func (_ChainlinkRequestInterface *ChainlinkRequestInterfaceTransactorSession) CancelOracleRequest(requestId [32]byte, payment *big.Int, callbackFunctionId [4]byte, expiration *big.Int) (*types.Transaction, error) {
 	return _ChainlinkRequestInterface.Contract.CancelOracleRequest(&_ChainlinkRequestInterface.TransactOpts, requestId, payment, callbackFunctionId, expiration)
 }
 
@@ -256,61 +199,16 @@ func (_ChainlinkRequestInterface *ChainlinkRequestInterfaceTransactor) OracleReq
 	return _ChainlinkRequestInterface.contract.Transact(opts, "oracleRequest", sender, requestPrice, serviceAgreementID, callbackAddress, callbackFunctionId, nonce, dataVersion, data)
 }
 
-func (_ChainlinkRequestInterface *ChainlinkRequestInterfaceTransactor) OracleRequestRawTx(opts *bind.TransactOpts, sender common.Address, requestPrice *big.Int, serviceAgreementID [32]byte, callbackAddress common.Address, callbackFunctionId [4]byte, nonce *big.Int, dataVersion *big.Int, data []byte) (*types.Transaction, error) {
-	return _ChainlinkRequestInterface.contract.RawTx(opts, "oracleRequest", sender, requestPrice, serviceAgreementID, callbackAddress, callbackFunctionId, nonce, dataVersion, data)
-}
-
 // OracleRequest is a paid mutator transaction binding the contract method 0x40429946.
-// Will wait for tx receipt
 //
 // Solidity: function oracleRequest(address sender, uint256 requestPrice, bytes32 serviceAgreementID, address callbackAddress, bytes4 callbackFunctionId, uint256 nonce, uint256 dataVersion, bytes data) returns()
-func (_ChainlinkRequestInterface *ChainlinkRequestInterfaceSession) OracleRequest(sender common.Address, requestPrice *big.Int, serviceAgreementID [32]byte, callbackAddress common.Address, callbackFunctionId [4]byte, nonce *big.Int, dataVersion *big.Int, data []byte) (*types.Transaction, *types.Receipt, error) {
-	_ChainlinkRequestInterface.transactionSession.Lock()
-	tx, err := _ChainlinkRequestInterface.Contract.OracleRequest(_ChainlinkRequestInterface.transactionSession.TransactOpts, sender, requestPrice, serviceAgreementID, callbackAddress, callbackFunctionId, nonce, dataVersion, data)
-	if err != nil {
-		_ChainlinkRequestInterface.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_ChainlinkRequestInterface.transactionSession.TransactOpts.Nonce.Add(_ChainlinkRequestInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_ChainlinkRequestInterface.transactionSession.Unlock()
-	receipt, err := _ChainlinkRequestInterface.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// OracleRequest returns raw transaction bound to the contract method 0x40429946.
-//
-// Solidity: function oracleRequest(address sender, uint256 requestPrice, bytes32 serviceAgreementID, address callbackAddress, bytes4 callbackFunctionId, uint256 nonce, uint256 dataVersion, bytes data) returns()
-func (_ChainlinkRequestInterface *ChainlinkRequestInterfaceSession) OracleRequestRawTx(sender common.Address, requestPrice *big.Int, serviceAgreementID [32]byte, callbackAddress common.Address, callbackFunctionId [4]byte, nonce *big.Int, dataVersion *big.Int, data []byte) (*types.Transaction, error) {
-	tx, err := _ChainlinkRequestInterface.Contract.OracleRequestRawTx(_ChainlinkRequestInterface.transactionSession.TransactOpts, sender, requestPrice, serviceAgreementID, callbackAddress, callbackFunctionId, nonce, dataVersion, data)
-	return tx, err
-}
-
-// OracleRequest is a paid mutator transaction binding the contract method 0x40429946.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function oracleRequest(address sender, uint256 requestPrice, bytes32 serviceAgreementID, address callbackAddress, bytes4 callbackFunctionId, uint256 nonce, uint256 dataVersion, bytes data) returns()
-func (_ChainlinkRequestInterface *ChainlinkRequestInterfaceSession) OracleRequestAsync(receiptCh chan *types.ReceiptResult, sender common.Address, requestPrice *big.Int, serviceAgreementID [32]byte, callbackAddress common.Address, callbackFunctionId [4]byte, nonce *big.Int, dataVersion *big.Int, data []byte) (*types.Transaction, error) {
-	_ChainlinkRequestInterface.transactionSession.Lock()
-	tx, err := _ChainlinkRequestInterface.Contract.OracleRequest(_ChainlinkRequestInterface.transactionSession.TransactOpts, sender, requestPrice, serviceAgreementID, callbackAddress, callbackFunctionId, nonce, dataVersion, data)
-	if err != nil {
-		_ChainlinkRequestInterface.transactionSession.Unlock()
-		return nil, err
-	}
-	_ChainlinkRequestInterface.transactionSession.TransactOpts.Nonce.Add(_ChainlinkRequestInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_ChainlinkRequestInterface.transactionSession.Unlock()
-	go func() {
-		receipt, err := _ChainlinkRequestInterface.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_ChainlinkRequestInterface *ChainlinkRequestInterfaceSession) OracleRequest(sender common.Address, requestPrice *big.Int, serviceAgreementID [32]byte, callbackAddress common.Address, callbackFunctionId [4]byte, nonce *big.Int, dataVersion *big.Int, data []byte) (*types.Transaction, error) {
+	return _ChainlinkRequestInterface.Contract.OracleRequest(&_ChainlinkRequestInterface.TransactOpts, sender, requestPrice, serviceAgreementID, callbackAddress, callbackFunctionId, nonce, dataVersion, data)
 }
 
 // OracleRequest is a paid mutator transaction binding the contract method 0x40429946.
 //
 // Solidity: function oracleRequest(address sender, uint256 requestPrice, bytes32 serviceAgreementID, address callbackAddress, bytes4 callbackFunctionId, uint256 nonce, uint256 dataVersion, bytes data) returns()
-func (_ChainlinkRequestInterface *ChainlinkRequestInterfaceTransactorSession) OracleRequest(wait bool, sender common.Address, requestPrice *big.Int, serviceAgreementID [32]byte, callbackAddress common.Address, callbackFunctionId [4]byte, nonce *big.Int, dataVersion *big.Int, data []byte) (*types.Transaction, error) {
+func (_ChainlinkRequestInterface *ChainlinkRequestInterfaceTransactorSession) OracleRequest(sender common.Address, requestPrice *big.Int, serviceAgreementID [32]byte, callbackAddress common.Address, callbackFunctionId [4]byte, nonce *big.Int, dataVersion *big.Int, data []byte) (*types.Transaction, error) {
 	return _ChainlinkRequestInterface.Contract.OracleRequest(&_ChainlinkRequestInterface.TransactOpts, sender, requestPrice, serviceAgreementID, callbackAddress, callbackFunctionId, nonce, dataVersion, data)
 }

@@ -4,14 +4,14 @@
 package bindings
 
 import (
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strings"
-	//"github.com/sivo4kin/digiu-cross-chain/bind"
+
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -46,25 +46,6 @@ func DeployOther(auth *bind.TransactOpts, backend bind.ContractBackend) (common.
 	return address, tx, &Other{OtherCaller: OtherCaller{contract: contract}, OtherTransactor: OtherTransactor{contract: contract}, OtherFilterer: OtherFilterer{contract: contract}}, nil
 }
 
-// DeployOtherSync deploys a new Ethereum contract and waits for receipt, binding an instance of OtherSession to it.
-func DeployOtherSync(session *bind.TransactSession, backend bind.ContractBackend) (*types.Transaction, *types.Receipt, *OtherSession, error) {
-	parsed, err := abi.JSON(strings.NewReader(OtherABI))
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	session.Lock()
-	address, tx, _, err := bind.DeployContract(session.TransactOpts, parsed, common.FromHex(OtherBin), backend)
-	receipt, err := session.WaitTransaction(tx)
-	if err != nil {
-		session.Unlock()
-		return nil, nil, nil, err
-	}
-	session.TransactOpts.Nonce.Add(session.TransactOpts.Nonce, big.NewInt(1))
-	session.Unlock()
-	contractSession, err := NewOtherSession(address, backend, session)
-	return tx, receipt, contractSession, err
-}
-
 // Other is an auto generated Go binding around an Ethereum contract.
 type Other struct {
 	OtherCaller     // Read-only binding to the contract
@@ -90,9 +71,9 @@ type OtherFilterer struct {
 // OtherSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type OtherSession struct {
-	Contract           *Other // Generic contract binding to set the session for
-	transactionSession *bind.TransactSession
-	Address            common.Address
+	Contract     *Other            // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
 // OtherCallerSession is an auto generated read-only Go binding around an Ethereum contract,
@@ -160,18 +141,6 @@ func NewOtherFilterer(address common.Address, filterer bind.ContractFilterer) (*
 	return &OtherFilterer{contract: contract}, nil
 }
 
-func NewOtherSession(address common.Address, backend bind.ContractBackend, transactionSession *bind.TransactSession) (*OtherSession, error) {
-	OtherInstance, err := NewOther(address, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &OtherSession{
-		Contract:           OtherInstance,
-		transactionSession: transactionSession,
-		Address:            address,
-	}, nil
-}
-
 // bindOther binds a generic wrapper to an already deployed contract.
 func bindOther(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(OtherABI))
@@ -185,7 +154,7 @@ func bindOther(address common.Address, caller bind.ContractCaller, transactor bi
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Other *OtherRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_Other *OtherRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _Other.Contract.OtherCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -204,7 +173,7 @@ func (_Other *OtherRaw) Transact(opts *bind.TransactOpts, method string, params 
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Other *OtherCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_Other *OtherCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _Other.Contract.contract.Call(opts, result, method, params...)
 }
 

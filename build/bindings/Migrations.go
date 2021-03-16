@@ -4,14 +4,14 @@
 package bindings
 
 import (
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strings"
-	//"github.com/sivo4kin/digiu-cross-chain/bind"
+
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -46,25 +46,6 @@ func DeployMigrations(auth *bind.TransactOpts, backend bind.ContractBackend) (co
 	return address, tx, &Migrations{MigrationsCaller: MigrationsCaller{contract: contract}, MigrationsTransactor: MigrationsTransactor{contract: contract}, MigrationsFilterer: MigrationsFilterer{contract: contract}}, nil
 }
 
-// DeployMigrationsSync deploys a new Ethereum contract and waits for receipt, binding an instance of MigrationsSession to it.
-func DeployMigrationsSync(session *bind.TransactSession, backend bind.ContractBackend) (*types.Transaction, *types.Receipt, *MigrationsSession, error) {
-	parsed, err := abi.JSON(strings.NewReader(MigrationsABI))
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	session.Lock()
-	address, tx, _, err := bind.DeployContract(session.TransactOpts, parsed, common.FromHex(MigrationsBin), backend)
-	receipt, err := session.WaitTransaction(tx)
-	if err != nil {
-		session.Unlock()
-		return nil, nil, nil, err
-	}
-	session.TransactOpts.Nonce.Add(session.TransactOpts.Nonce, big.NewInt(1))
-	session.Unlock()
-	contractSession, err := NewMigrationsSession(address, backend, session)
-	return tx, receipt, contractSession, err
-}
-
 // Migrations is an auto generated Go binding around an Ethereum contract.
 type Migrations struct {
 	MigrationsCaller     // Read-only binding to the contract
@@ -90,9 +71,9 @@ type MigrationsFilterer struct {
 // MigrationsSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type MigrationsSession struct {
-	Contract           *Migrations // Generic contract binding to set the session for
-	transactionSession *bind.TransactSession
-	Address            common.Address
+	Contract     *Migrations       // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
 // MigrationsCallerSession is an auto generated read-only Go binding around an Ethereum contract,
@@ -160,18 +141,6 @@ func NewMigrationsFilterer(address common.Address, filterer bind.ContractFiltere
 	return &MigrationsFilterer{contract: contract}, nil
 }
 
-func NewMigrationsSession(address common.Address, backend bind.ContractBackend, transactionSession *bind.TransactSession) (*MigrationsSession, error) {
-	MigrationsInstance, err := NewMigrations(address, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &MigrationsSession{
-		Contract:           MigrationsInstance,
-		transactionSession: transactionSession,
-		Address:            address,
-	}, nil
-}
-
 // bindMigrations binds a generic wrapper to an already deployed contract.
 func bindMigrations(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(MigrationsABI))
@@ -185,7 +154,7 @@ func bindMigrations(address common.Address, caller bind.ContractCaller, transact
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Migrations *MigrationsRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_Migrations *MigrationsRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _Migrations.Contract.MigrationsCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -204,7 +173,7 @@ func (_Migrations *MigrationsRaw) Transact(opts *bind.TransactOpts, method strin
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Migrations *MigrationsCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_Migrations *MigrationsCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _Migrations.Contract.contract.Call(opts, result, method, params...)
 }
 
@@ -223,19 +192,24 @@ func (_Migrations *MigrationsTransactorRaw) Transact(opts *bind.TransactOpts, me
 //
 // Solidity: function last_completed_migration() view returns(uint256)
 func (_Migrations *MigrationsCaller) LastCompletedMigration(opts *bind.CallOpts) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _Migrations.contract.Call(opts, out, "last_completed_migration")
-	return *ret0, err
+	var out []interface{}
+	err := _Migrations.contract.Call(opts, &out, "last_completed_migration")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // LastCompletedMigration is a free data retrieval call binding the contract method 0x445df0ac.
 //
 // Solidity: function last_completed_migration() view returns(uint256)
 func (_Migrations *MigrationsSession) LastCompletedMigration() (*big.Int, error) {
-	return _Migrations.Contract.LastCompletedMigration(_Migrations.transactionSession.CallOpts)
+	return _Migrations.Contract.LastCompletedMigration(&_Migrations.CallOpts)
 }
 
 // LastCompletedMigration is a free data retrieval call binding the contract method 0x445df0ac.
@@ -249,19 +223,24 @@ func (_Migrations *MigrationsCallerSession) LastCompletedMigration() (*big.Int, 
 //
 // Solidity: function owner() view returns(address)
 func (_Migrations *MigrationsCaller) Owner(opts *bind.CallOpts) (common.Address, error) {
-	var (
-		ret0 = new(common.Address)
-	)
-	out := ret0
-	err := _Migrations.contract.Call(opts, out, "owner")
-	return *ret0, err
+	var out []interface{}
+	err := _Migrations.contract.Call(opts, &out, "owner")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
 //
 // Solidity: function owner() view returns(address)
 func (_Migrations *MigrationsSession) Owner() (common.Address, error) {
-	return _Migrations.Contract.Owner(_Migrations.transactionSession.CallOpts)
+	return _Migrations.Contract.Owner(&_Migrations.CallOpts)
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
@@ -278,62 +257,17 @@ func (_Migrations *MigrationsTransactor) SetCompleted(opts *bind.TransactOpts, c
 	return _Migrations.contract.Transact(opts, "setCompleted", completed)
 }
 
-func (_Migrations *MigrationsTransactor) SetCompletedRawTx(opts *bind.TransactOpts, completed *big.Int) (*types.Transaction, error) {
-	return _Migrations.contract.RawTx(opts, "setCompleted", completed)
-}
-
 // SetCompleted is a paid mutator transaction binding the contract method 0xfdacd576.
-// Will wait for tx receipt
 //
 // Solidity: function setCompleted(uint256 completed) returns()
-func (_Migrations *MigrationsSession) SetCompleted(completed *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_Migrations.transactionSession.Lock()
-	tx, err := _Migrations.Contract.SetCompleted(_Migrations.transactionSession.TransactOpts, completed)
-	if err != nil {
-		_Migrations.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_Migrations.transactionSession.TransactOpts.Nonce.Add(_Migrations.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_Migrations.transactionSession.Unlock()
-	receipt, err := _Migrations.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// SetCompleted returns raw transaction bound to the contract method 0xfdacd576.
-//
-// Solidity: function setCompleted(uint256 completed) returns()
-func (_Migrations *MigrationsSession) SetCompletedRawTx(completed *big.Int) (*types.Transaction, error) {
-	tx, err := _Migrations.Contract.SetCompletedRawTx(_Migrations.transactionSession.TransactOpts, completed)
-	return tx, err
-}
-
-// SetCompleted is a paid mutator transaction binding the contract method 0xfdacd576.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function setCompleted(uint256 completed) returns()
-func (_Migrations *MigrationsSession) SetCompletedAsync(receiptCh chan *types.ReceiptResult, completed *big.Int) (*types.Transaction, error) {
-	_Migrations.transactionSession.Lock()
-	tx, err := _Migrations.Contract.SetCompleted(_Migrations.transactionSession.TransactOpts, completed)
-	if err != nil {
-		_Migrations.transactionSession.Unlock()
-		return nil, err
-	}
-	_Migrations.transactionSession.TransactOpts.Nonce.Add(_Migrations.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_Migrations.transactionSession.Unlock()
-	go func() {
-		receipt, err := _Migrations.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_Migrations *MigrationsSession) SetCompleted(completed *big.Int) (*types.Transaction, error) {
+	return _Migrations.Contract.SetCompleted(&_Migrations.TransactOpts, completed)
 }
 
 // SetCompleted is a paid mutator transaction binding the contract method 0xfdacd576.
 //
 // Solidity: function setCompleted(uint256 completed) returns()
-func (_Migrations *MigrationsTransactorSession) SetCompleted(wait bool, completed *big.Int) (*types.Transaction, error) {
+func (_Migrations *MigrationsTransactorSession) SetCompleted(completed *big.Int) (*types.Transaction, error) {
 	return _Migrations.Contract.SetCompleted(&_Migrations.TransactOpts, completed)
 }
 
@@ -344,61 +278,16 @@ func (_Migrations *MigrationsTransactor) Upgrade(opts *bind.TransactOpts, new_ad
 	return _Migrations.contract.Transact(opts, "upgrade", new_address)
 }
 
-func (_Migrations *MigrationsTransactor) UpgradeRawTx(opts *bind.TransactOpts, new_address common.Address) (*types.Transaction, error) {
-	return _Migrations.contract.RawTx(opts, "upgrade", new_address)
-}
-
 // Upgrade is a paid mutator transaction binding the contract method 0x0900f010.
-// Will wait for tx receipt
 //
 // Solidity: function upgrade(address new_address) returns()
-func (_Migrations *MigrationsSession) Upgrade(new_address common.Address) (*types.Transaction, *types.Receipt, error) {
-	_Migrations.transactionSession.Lock()
-	tx, err := _Migrations.Contract.Upgrade(_Migrations.transactionSession.TransactOpts, new_address)
-	if err != nil {
-		_Migrations.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_Migrations.transactionSession.TransactOpts.Nonce.Add(_Migrations.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_Migrations.transactionSession.Unlock()
-	receipt, err := _Migrations.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// Upgrade returns raw transaction bound to the contract method 0x0900f010.
-//
-// Solidity: function upgrade(address new_address) returns()
-func (_Migrations *MigrationsSession) UpgradeRawTx(new_address common.Address) (*types.Transaction, error) {
-	tx, err := _Migrations.Contract.UpgradeRawTx(_Migrations.transactionSession.TransactOpts, new_address)
-	return tx, err
-}
-
-// Upgrade is a paid mutator transaction binding the contract method 0x0900f010.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function upgrade(address new_address) returns()
-func (_Migrations *MigrationsSession) UpgradeAsync(receiptCh chan *types.ReceiptResult, new_address common.Address) (*types.Transaction, error) {
-	_Migrations.transactionSession.Lock()
-	tx, err := _Migrations.Contract.Upgrade(_Migrations.transactionSession.TransactOpts, new_address)
-	if err != nil {
-		_Migrations.transactionSession.Unlock()
-		return nil, err
-	}
-	_Migrations.transactionSession.TransactOpts.Nonce.Add(_Migrations.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_Migrations.transactionSession.Unlock()
-	go func() {
-		receipt, err := _Migrations.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_Migrations *MigrationsSession) Upgrade(new_address common.Address) (*types.Transaction, error) {
+	return _Migrations.Contract.Upgrade(&_Migrations.TransactOpts, new_address)
 }
 
 // Upgrade is a paid mutator transaction binding the contract method 0x0900f010.
 //
 // Solidity: function upgrade(address new_address) returns()
-func (_Migrations *MigrationsTransactorSession) Upgrade(wait bool, new_address common.Address) (*types.Transaction, error) {
+func (_Migrations *MigrationsTransactorSession) Upgrade(new_address common.Address) (*types.Transaction, error) {
 	return _Migrations.Contract.Upgrade(&_Migrations.TransactOpts, new_address)
 }

@@ -4,14 +4,14 @@
 package bindings
 
 import (
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strings"
-	//"github.com/sivo4kin/digiu-cross-chain/bind"
+
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -46,25 +46,6 @@ func DeployChainlink(auth *bind.TransactOpts, backend bind.ContractBackend) (com
 	return address, tx, &Chainlink{ChainlinkCaller: ChainlinkCaller{contract: contract}, ChainlinkTransactor: ChainlinkTransactor{contract: contract}, ChainlinkFilterer: ChainlinkFilterer{contract: contract}}, nil
 }
 
-// DeployChainlinkSync deploys a new Ethereum contract and waits for receipt, binding an instance of ChainlinkSession to it.
-func DeployChainlinkSync(session *bind.TransactSession, backend bind.ContractBackend) (*types.Transaction, *types.Receipt, *ChainlinkSession, error) {
-	parsed, err := abi.JSON(strings.NewReader(ChainlinkABI))
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	session.Lock()
-	address, tx, _, err := bind.DeployContract(session.TransactOpts, parsed, common.FromHex(ChainlinkBin), backend)
-	receipt, err := session.WaitTransaction(tx)
-	if err != nil {
-		session.Unlock()
-		return nil, nil, nil, err
-	}
-	session.TransactOpts.Nonce.Add(session.TransactOpts.Nonce, big.NewInt(1))
-	session.Unlock()
-	contractSession, err := NewChainlinkSession(address, backend, session)
-	return tx, receipt, contractSession, err
-}
-
 // Chainlink is an auto generated Go binding around an Ethereum contract.
 type Chainlink struct {
 	ChainlinkCaller     // Read-only binding to the contract
@@ -90,9 +71,9 @@ type ChainlinkFilterer struct {
 // ChainlinkSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type ChainlinkSession struct {
-	Contract           *Chainlink // Generic contract binding to set the session for
-	transactionSession *bind.TransactSession
-	Address            common.Address
+	Contract     *Chainlink        // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
 // ChainlinkCallerSession is an auto generated read-only Go binding around an Ethereum contract,
@@ -160,18 +141,6 @@ func NewChainlinkFilterer(address common.Address, filterer bind.ContractFilterer
 	return &ChainlinkFilterer{contract: contract}, nil
 }
 
-func NewChainlinkSession(address common.Address, backend bind.ContractBackend, transactionSession *bind.TransactSession) (*ChainlinkSession, error) {
-	ChainlinkInstance, err := NewChainlink(address, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &ChainlinkSession{
-		Contract:           ChainlinkInstance,
-		transactionSession: transactionSession,
-		Address:            address,
-	}, nil
-}
-
 // bindChainlink binds a generic wrapper to an already deployed contract.
 func bindChainlink(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(ChainlinkABI))
@@ -185,7 +154,7 @@ func bindChainlink(address common.Address, caller bind.ContractCaller, transacto
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Chainlink *ChainlinkRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_Chainlink *ChainlinkRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _Chainlink.Contract.ChainlinkCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -204,7 +173,7 @@ func (_Chainlink *ChainlinkRaw) Transact(opts *bind.TransactOpts, method string,
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Chainlink *ChainlinkCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_Chainlink *ChainlinkCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _Chainlink.Contract.contract.Call(opts, result, method, params...)
 }
 

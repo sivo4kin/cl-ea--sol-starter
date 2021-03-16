@@ -1,14 +1,13 @@
 GOBUILD=go build
 
-.PHONY: all test clean build
+.PHONY: all test clean bindings build
 
 
 bindings:
-	cd build;./build --json contracts --pkg bindings --out bindings
+	cd build && go build && ./build --json contracts --pkg bindings --out bindings
 
 clean:
-	rm build/bindings/*.go
-	rm ./digiu-cross-chain
+	rm ./build/bindings/*.go ./digiu-cross-chain ./build/build
 
 build:
 	$(GOBUILD)
@@ -17,9 +16,8 @@ start:
 	./digiu-cross-chain
 
 test:
+	go test ./test -v
+all: clean bindings build start
 
-all:
-	make build
-	make start
 
 

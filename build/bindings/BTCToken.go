@@ -4,14 +4,14 @@
 package bindings
 
 import (
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strings"
-	//"github.com/sivo4kin/digiu-cross-chain/bind"
+
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -46,25 +46,6 @@ func DeployBTCToken(auth *bind.TransactOpts, backend bind.ContractBackend) (comm
 	return address, tx, &BTCToken{BTCTokenCaller: BTCTokenCaller{contract: contract}, BTCTokenTransactor: BTCTokenTransactor{contract: contract}, BTCTokenFilterer: BTCTokenFilterer{contract: contract}}, nil
 }
 
-// DeployBTCTokenSync deploys a new Ethereum contract and waits for receipt, binding an instance of BTCTokenSession to it.
-func DeployBTCTokenSync(session *bind.TransactSession, backend bind.ContractBackend) (*types.Transaction, *types.Receipt, *BTCTokenSession, error) {
-	parsed, err := abi.JSON(strings.NewReader(BTCTokenABI))
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	session.Lock()
-	address, tx, _, err := bind.DeployContract(session.TransactOpts, parsed, common.FromHex(BTCTokenBin), backend)
-	receipt, err := session.WaitTransaction(tx)
-	if err != nil {
-		session.Unlock()
-		return nil, nil, nil, err
-	}
-	session.TransactOpts.Nonce.Add(session.TransactOpts.Nonce, big.NewInt(1))
-	session.Unlock()
-	contractSession, err := NewBTCTokenSession(address, backend, session)
-	return tx, receipt, contractSession, err
-}
-
 // BTCToken is an auto generated Go binding around an Ethereum contract.
 type BTCToken struct {
 	BTCTokenCaller     // Read-only binding to the contract
@@ -90,9 +71,9 @@ type BTCTokenFilterer struct {
 // BTCTokenSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type BTCTokenSession struct {
-	Contract           *BTCToken // Generic contract binding to set the session for
-	transactionSession *bind.TransactSession
-	Address            common.Address
+	Contract     *BTCToken         // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
 // BTCTokenCallerSession is an auto generated read-only Go binding around an Ethereum contract,
@@ -160,18 +141,6 @@ func NewBTCTokenFilterer(address common.Address, filterer bind.ContractFilterer)
 	return &BTCTokenFilterer{contract: contract}, nil
 }
 
-func NewBTCTokenSession(address common.Address, backend bind.ContractBackend, transactionSession *bind.TransactSession) (*BTCTokenSession, error) {
-	BTCTokenInstance, err := NewBTCToken(address, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &BTCTokenSession{
-		Contract:           BTCTokenInstance,
-		transactionSession: transactionSession,
-		Address:            address,
-	}, nil
-}
-
 // bindBTCToken binds a generic wrapper to an already deployed contract.
 func bindBTCToken(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(BTCTokenABI))
@@ -185,7 +154,7 @@ func bindBTCToken(address common.Address, caller bind.ContractCaller, transactor
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_BTCToken *BTCTokenRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_BTCToken *BTCTokenRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _BTCToken.Contract.BTCTokenCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -204,7 +173,7 @@ func (_BTCToken *BTCTokenRaw) Transact(opts *bind.TransactOpts, method string, p
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_BTCToken *BTCTokenCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_BTCToken *BTCTokenCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _BTCToken.Contract.contract.Call(opts, result, method, params...)
 }
 
@@ -223,19 +192,24 @@ func (_BTCToken *BTCTokenTransactorRaw) Transact(opts *bind.TransactOpts, method
 //
 // Solidity: function allowance(address owner, address spender) view returns(uint256)
 func (_BTCToken *BTCTokenCaller) Allowance(opts *bind.CallOpts, owner common.Address, spender common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _BTCToken.contract.Call(opts, out, "allowance", owner, spender)
-	return *ret0, err
+	var out []interface{}
+	err := _BTCToken.contract.Call(opts, &out, "allowance", owner, spender)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // Allowance is a free data retrieval call binding the contract method 0xdd62ed3e.
 //
 // Solidity: function allowance(address owner, address spender) view returns(uint256)
 func (_BTCToken *BTCTokenSession) Allowance(owner common.Address, spender common.Address) (*big.Int, error) {
-	return _BTCToken.Contract.Allowance(_BTCToken.transactionSession.CallOpts, owner, spender)
+	return _BTCToken.Contract.Allowance(&_BTCToken.CallOpts, owner, spender)
 }
 
 // Allowance is a free data retrieval call binding the contract method 0xdd62ed3e.
@@ -249,19 +223,24 @@ func (_BTCToken *BTCTokenCallerSession) Allowance(owner common.Address, spender 
 //
 // Solidity: function balanceOf(address account) view returns(uint256)
 func (_BTCToken *BTCTokenCaller) BalanceOf(opts *bind.CallOpts, account common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _BTCToken.contract.Call(opts, out, "balanceOf", account)
-	return *ret0, err
+	var out []interface{}
+	err := _BTCToken.contract.Call(opts, &out, "balanceOf", account)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
 //
 // Solidity: function balanceOf(address account) view returns(uint256)
 func (_BTCToken *BTCTokenSession) BalanceOf(account common.Address) (*big.Int, error) {
-	return _BTCToken.Contract.BalanceOf(_BTCToken.transactionSession.CallOpts, account)
+	return _BTCToken.Contract.BalanceOf(&_BTCToken.CallOpts, account)
 }
 
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
@@ -275,19 +254,24 @@ func (_BTCToken *BTCTokenCallerSession) BalanceOf(account common.Address) (*big.
 //
 // Solidity: function decimals() view returns(uint8)
 func (_BTCToken *BTCTokenCaller) Decimals(opts *bind.CallOpts) (uint8, error) {
-	var (
-		ret0 = new(uint8)
-	)
-	out := ret0
-	err := _BTCToken.contract.Call(opts, out, "decimals")
-	return *ret0, err
+	var out []interface{}
+	err := _BTCToken.contract.Call(opts, &out, "decimals")
+
+	if err != nil {
+		return *new(uint8), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint8)).(*uint8)
+
+	return out0, err
+
 }
 
 // Decimals is a free data retrieval call binding the contract method 0x313ce567.
 //
 // Solidity: function decimals() view returns(uint8)
 func (_BTCToken *BTCTokenSession) Decimals() (uint8, error) {
-	return _BTCToken.Contract.Decimals(_BTCToken.transactionSession.CallOpts)
+	return _BTCToken.Contract.Decimals(&_BTCToken.CallOpts)
 }
 
 // Decimals is a free data retrieval call binding the contract method 0x313ce567.
@@ -301,19 +285,24 @@ func (_BTCToken *BTCTokenCallerSession) Decimals() (uint8, error) {
 //
 // Solidity: function name() view returns(string)
 func (_BTCToken *BTCTokenCaller) Name(opts *bind.CallOpts) (string, error) {
-	var (
-		ret0 = new(string)
-	)
-	out := ret0
-	err := _BTCToken.contract.Call(opts, out, "name")
-	return *ret0, err
+	var out []interface{}
+	err := _BTCToken.contract.Call(opts, &out, "name")
+
+	if err != nil {
+		return *new(string), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(string)).(*string)
+
+	return out0, err
+
 }
 
 // Name is a free data retrieval call binding the contract method 0x06fdde03.
 //
 // Solidity: function name() view returns(string)
 func (_BTCToken *BTCTokenSession) Name() (string, error) {
-	return _BTCToken.Contract.Name(_BTCToken.transactionSession.CallOpts)
+	return _BTCToken.Contract.Name(&_BTCToken.CallOpts)
 }
 
 // Name is a free data retrieval call binding the contract method 0x06fdde03.
@@ -327,19 +316,24 @@ func (_BTCToken *BTCTokenCallerSession) Name() (string, error) {
 //
 // Solidity: function symbol() view returns(string)
 func (_BTCToken *BTCTokenCaller) Symbol(opts *bind.CallOpts) (string, error) {
-	var (
-		ret0 = new(string)
-	)
-	out := ret0
-	err := _BTCToken.contract.Call(opts, out, "symbol")
-	return *ret0, err
+	var out []interface{}
+	err := _BTCToken.contract.Call(opts, &out, "symbol")
+
+	if err != nil {
+		return *new(string), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(string)).(*string)
+
+	return out0, err
+
 }
 
 // Symbol is a free data retrieval call binding the contract method 0x95d89b41.
 //
 // Solidity: function symbol() view returns(string)
 func (_BTCToken *BTCTokenSession) Symbol() (string, error) {
-	return _BTCToken.Contract.Symbol(_BTCToken.transactionSession.CallOpts)
+	return _BTCToken.Contract.Symbol(&_BTCToken.CallOpts)
 }
 
 // Symbol is a free data retrieval call binding the contract method 0x95d89b41.
@@ -353,19 +347,24 @@ func (_BTCToken *BTCTokenCallerSession) Symbol() (string, error) {
 //
 // Solidity: function totalSupply() view returns(uint256)
 func (_BTCToken *BTCTokenCaller) TotalSupply(opts *bind.CallOpts) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _BTCToken.contract.Call(opts, out, "totalSupply")
-	return *ret0, err
+	var out []interface{}
+	err := _BTCToken.contract.Call(opts, &out, "totalSupply")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // TotalSupply is a free data retrieval call binding the contract method 0x18160ddd.
 //
 // Solidity: function totalSupply() view returns(uint256)
 func (_BTCToken *BTCTokenSession) TotalSupply() (*big.Int, error) {
-	return _BTCToken.Contract.TotalSupply(_BTCToken.transactionSession.CallOpts)
+	return _BTCToken.Contract.TotalSupply(&_BTCToken.CallOpts)
 }
 
 // TotalSupply is a free data retrieval call binding the contract method 0x18160ddd.
@@ -382,62 +381,17 @@ func (_BTCToken *BTCTokenTransactor) Approve(opts *bind.TransactOpts, spender co
 	return _BTCToken.contract.Transact(opts, "approve", spender, amount)
 }
 
-func (_BTCToken *BTCTokenTransactor) ApproveRawTx(opts *bind.TransactOpts, spender common.Address, amount *big.Int) (*types.Transaction, error) {
-	return _BTCToken.contract.RawTx(opts, "approve", spender, amount)
-}
-
 // Approve is a paid mutator transaction binding the contract method 0x095ea7b3.
-// Will wait for tx receipt
 //
 // Solidity: function approve(address spender, uint256 amount) returns(bool)
-func (_BTCToken *BTCTokenSession) Approve(spender common.Address, amount *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_BTCToken.transactionSession.Lock()
-	tx, err := _BTCToken.Contract.Approve(_BTCToken.transactionSession.TransactOpts, spender, amount)
-	if err != nil {
-		_BTCToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_BTCToken.transactionSession.TransactOpts.Nonce.Add(_BTCToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_BTCToken.transactionSession.Unlock()
-	receipt, err := _BTCToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// Approve returns raw transaction bound to the contract method 0x095ea7b3.
-//
-// Solidity: function approve(address spender, uint256 amount) returns(bool)
-func (_BTCToken *BTCTokenSession) ApproveRawTx(spender common.Address, amount *big.Int) (*types.Transaction, error) {
-	tx, err := _BTCToken.Contract.ApproveRawTx(_BTCToken.transactionSession.TransactOpts, spender, amount)
-	return tx, err
-}
-
-// Approve is a paid mutator transaction binding the contract method 0x095ea7b3.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function approve(address spender, uint256 amount) returns(bool)
-func (_BTCToken *BTCTokenSession) ApproveAsync(receiptCh chan *types.ReceiptResult, spender common.Address, amount *big.Int) (*types.Transaction, error) {
-	_BTCToken.transactionSession.Lock()
-	tx, err := _BTCToken.Contract.Approve(_BTCToken.transactionSession.TransactOpts, spender, amount)
-	if err != nil {
-		_BTCToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_BTCToken.transactionSession.TransactOpts.Nonce.Add(_BTCToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_BTCToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _BTCToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_BTCToken *BTCTokenSession) Approve(spender common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _BTCToken.Contract.Approve(&_BTCToken.TransactOpts, spender, amount)
 }
 
 // Approve is a paid mutator transaction binding the contract method 0x095ea7b3.
 //
 // Solidity: function approve(address spender, uint256 amount) returns(bool)
-func (_BTCToken *BTCTokenTransactorSession) Approve(wait bool, spender common.Address, amount *big.Int) (*types.Transaction, error) {
+func (_BTCToken *BTCTokenTransactorSession) Approve(spender common.Address, amount *big.Int) (*types.Transaction, error) {
 	return _BTCToken.Contract.Approve(&_BTCToken.TransactOpts, spender, amount)
 }
 
@@ -448,62 +402,17 @@ func (_BTCToken *BTCTokenTransactor) Burn(opts *bind.TransactOpts, _account comm
 	return _BTCToken.contract.Transact(opts, "burn", _account, _amount)
 }
 
-func (_BTCToken *BTCTokenTransactor) BurnRawTx(opts *bind.TransactOpts, _account common.Address, _amount *big.Int) (*types.Transaction, error) {
-	return _BTCToken.contract.RawTx(opts, "burn", _account, _amount)
-}
-
 // Burn is a paid mutator transaction binding the contract method 0x9dc29fac.
-// Will wait for tx receipt
 //
 // Solidity: function burn(address _account, uint256 _amount) returns()
-func (_BTCToken *BTCTokenSession) Burn(_account common.Address, _amount *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_BTCToken.transactionSession.Lock()
-	tx, err := _BTCToken.Contract.Burn(_BTCToken.transactionSession.TransactOpts, _account, _amount)
-	if err != nil {
-		_BTCToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_BTCToken.transactionSession.TransactOpts.Nonce.Add(_BTCToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_BTCToken.transactionSession.Unlock()
-	receipt, err := _BTCToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// Burn returns raw transaction bound to the contract method 0x9dc29fac.
-//
-// Solidity: function burn(address _account, uint256 _amount) returns()
-func (_BTCToken *BTCTokenSession) BurnRawTx(_account common.Address, _amount *big.Int) (*types.Transaction, error) {
-	tx, err := _BTCToken.Contract.BurnRawTx(_BTCToken.transactionSession.TransactOpts, _account, _amount)
-	return tx, err
-}
-
-// Burn is a paid mutator transaction binding the contract method 0x9dc29fac.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function burn(address _account, uint256 _amount) returns()
-func (_BTCToken *BTCTokenSession) BurnAsync(receiptCh chan *types.ReceiptResult, _account common.Address, _amount *big.Int) (*types.Transaction, error) {
-	_BTCToken.transactionSession.Lock()
-	tx, err := _BTCToken.Contract.Burn(_BTCToken.transactionSession.TransactOpts, _account, _amount)
-	if err != nil {
-		_BTCToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_BTCToken.transactionSession.TransactOpts.Nonce.Add(_BTCToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_BTCToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _BTCToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_BTCToken *BTCTokenSession) Burn(_account common.Address, _amount *big.Int) (*types.Transaction, error) {
+	return _BTCToken.Contract.Burn(&_BTCToken.TransactOpts, _account, _amount)
 }
 
 // Burn is a paid mutator transaction binding the contract method 0x9dc29fac.
 //
 // Solidity: function burn(address _account, uint256 _amount) returns()
-func (_BTCToken *BTCTokenTransactorSession) Burn(wait bool, _account common.Address, _amount *big.Int) (*types.Transaction, error) {
+func (_BTCToken *BTCTokenTransactorSession) Burn(_account common.Address, _amount *big.Int) (*types.Transaction, error) {
 	return _BTCToken.Contract.Burn(&_BTCToken.TransactOpts, _account, _amount)
 }
 
@@ -514,62 +423,17 @@ func (_BTCToken *BTCTokenTransactor) DecreaseAllowance(opts *bind.TransactOpts, 
 	return _BTCToken.contract.Transact(opts, "decreaseAllowance", spender, subtractedValue)
 }
 
-func (_BTCToken *BTCTokenTransactor) DecreaseAllowanceRawTx(opts *bind.TransactOpts, spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
-	return _BTCToken.contract.RawTx(opts, "decreaseAllowance", spender, subtractedValue)
-}
-
 // DecreaseAllowance is a paid mutator transaction binding the contract method 0xa457c2d7.
-// Will wait for tx receipt
 //
 // Solidity: function decreaseAllowance(address spender, uint256 subtractedValue) returns(bool)
-func (_BTCToken *BTCTokenSession) DecreaseAllowance(spender common.Address, subtractedValue *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_BTCToken.transactionSession.Lock()
-	tx, err := _BTCToken.Contract.DecreaseAllowance(_BTCToken.transactionSession.TransactOpts, spender, subtractedValue)
-	if err != nil {
-		_BTCToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_BTCToken.transactionSession.TransactOpts.Nonce.Add(_BTCToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_BTCToken.transactionSession.Unlock()
-	receipt, err := _BTCToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// DecreaseAllowance returns raw transaction bound to the contract method 0xa457c2d7.
-//
-// Solidity: function decreaseAllowance(address spender, uint256 subtractedValue) returns(bool)
-func (_BTCToken *BTCTokenSession) DecreaseAllowanceRawTx(spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
-	tx, err := _BTCToken.Contract.DecreaseAllowanceRawTx(_BTCToken.transactionSession.TransactOpts, spender, subtractedValue)
-	return tx, err
-}
-
-// DecreaseAllowance is a paid mutator transaction binding the contract method 0xa457c2d7.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function decreaseAllowance(address spender, uint256 subtractedValue) returns(bool)
-func (_BTCToken *BTCTokenSession) DecreaseAllowanceAsync(receiptCh chan *types.ReceiptResult, spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
-	_BTCToken.transactionSession.Lock()
-	tx, err := _BTCToken.Contract.DecreaseAllowance(_BTCToken.transactionSession.TransactOpts, spender, subtractedValue)
-	if err != nil {
-		_BTCToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_BTCToken.transactionSession.TransactOpts.Nonce.Add(_BTCToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_BTCToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _BTCToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_BTCToken *BTCTokenSession) DecreaseAllowance(spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
+	return _BTCToken.Contract.DecreaseAllowance(&_BTCToken.TransactOpts, spender, subtractedValue)
 }
 
 // DecreaseAllowance is a paid mutator transaction binding the contract method 0xa457c2d7.
 //
 // Solidity: function decreaseAllowance(address spender, uint256 subtractedValue) returns(bool)
-func (_BTCToken *BTCTokenTransactorSession) DecreaseAllowance(wait bool, spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
+func (_BTCToken *BTCTokenTransactorSession) DecreaseAllowance(spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
 	return _BTCToken.Contract.DecreaseAllowance(&_BTCToken.TransactOpts, spender, subtractedValue)
 }
 
@@ -580,62 +444,17 @@ func (_BTCToken *BTCTokenTransactor) IncreaseAllowance(opts *bind.TransactOpts, 
 	return _BTCToken.contract.Transact(opts, "increaseAllowance", spender, addedValue)
 }
 
-func (_BTCToken *BTCTokenTransactor) IncreaseAllowanceRawTx(opts *bind.TransactOpts, spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
-	return _BTCToken.contract.RawTx(opts, "increaseAllowance", spender, addedValue)
-}
-
 // IncreaseAllowance is a paid mutator transaction binding the contract method 0x39509351.
-// Will wait for tx receipt
 //
 // Solidity: function increaseAllowance(address spender, uint256 addedValue) returns(bool)
-func (_BTCToken *BTCTokenSession) IncreaseAllowance(spender common.Address, addedValue *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_BTCToken.transactionSession.Lock()
-	tx, err := _BTCToken.Contract.IncreaseAllowance(_BTCToken.transactionSession.TransactOpts, spender, addedValue)
-	if err != nil {
-		_BTCToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_BTCToken.transactionSession.TransactOpts.Nonce.Add(_BTCToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_BTCToken.transactionSession.Unlock()
-	receipt, err := _BTCToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// IncreaseAllowance returns raw transaction bound to the contract method 0x39509351.
-//
-// Solidity: function increaseAllowance(address spender, uint256 addedValue) returns(bool)
-func (_BTCToken *BTCTokenSession) IncreaseAllowanceRawTx(spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
-	tx, err := _BTCToken.Contract.IncreaseAllowanceRawTx(_BTCToken.transactionSession.TransactOpts, spender, addedValue)
-	return tx, err
-}
-
-// IncreaseAllowance is a paid mutator transaction binding the contract method 0x39509351.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function increaseAllowance(address spender, uint256 addedValue) returns(bool)
-func (_BTCToken *BTCTokenSession) IncreaseAllowanceAsync(receiptCh chan *types.ReceiptResult, spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
-	_BTCToken.transactionSession.Lock()
-	tx, err := _BTCToken.Contract.IncreaseAllowance(_BTCToken.transactionSession.TransactOpts, spender, addedValue)
-	if err != nil {
-		_BTCToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_BTCToken.transactionSession.TransactOpts.Nonce.Add(_BTCToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_BTCToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _BTCToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_BTCToken *BTCTokenSession) IncreaseAllowance(spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
+	return _BTCToken.Contract.IncreaseAllowance(&_BTCToken.TransactOpts, spender, addedValue)
 }
 
 // IncreaseAllowance is a paid mutator transaction binding the contract method 0x39509351.
 //
 // Solidity: function increaseAllowance(address spender, uint256 addedValue) returns(bool)
-func (_BTCToken *BTCTokenTransactorSession) IncreaseAllowance(wait bool, spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
+func (_BTCToken *BTCTokenTransactorSession) IncreaseAllowance(spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
 	return _BTCToken.Contract.IncreaseAllowance(&_BTCToken.TransactOpts, spender, addedValue)
 }
 
@@ -646,62 +465,17 @@ func (_BTCToken *BTCTokenTransactor) Mint(opts *bind.TransactOpts, _account comm
 	return _BTCToken.contract.Transact(opts, "mint", _account, _amount)
 }
 
-func (_BTCToken *BTCTokenTransactor) MintRawTx(opts *bind.TransactOpts, _account common.Address, _amount *big.Int) (*types.Transaction, error) {
-	return _BTCToken.contract.RawTx(opts, "mint", _account, _amount)
-}
-
 // Mint is a paid mutator transaction binding the contract method 0x40c10f19.
-// Will wait for tx receipt
 //
 // Solidity: function mint(address _account, uint256 _amount) returns()
-func (_BTCToken *BTCTokenSession) Mint(_account common.Address, _amount *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_BTCToken.transactionSession.Lock()
-	tx, err := _BTCToken.Contract.Mint(_BTCToken.transactionSession.TransactOpts, _account, _amount)
-	if err != nil {
-		_BTCToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_BTCToken.transactionSession.TransactOpts.Nonce.Add(_BTCToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_BTCToken.transactionSession.Unlock()
-	receipt, err := _BTCToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// Mint returns raw transaction bound to the contract method 0x40c10f19.
-//
-// Solidity: function mint(address _account, uint256 _amount) returns()
-func (_BTCToken *BTCTokenSession) MintRawTx(_account common.Address, _amount *big.Int) (*types.Transaction, error) {
-	tx, err := _BTCToken.Contract.MintRawTx(_BTCToken.transactionSession.TransactOpts, _account, _amount)
-	return tx, err
-}
-
-// Mint is a paid mutator transaction binding the contract method 0x40c10f19.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function mint(address _account, uint256 _amount) returns()
-func (_BTCToken *BTCTokenSession) MintAsync(receiptCh chan *types.ReceiptResult, _account common.Address, _amount *big.Int) (*types.Transaction, error) {
-	_BTCToken.transactionSession.Lock()
-	tx, err := _BTCToken.Contract.Mint(_BTCToken.transactionSession.TransactOpts, _account, _amount)
-	if err != nil {
-		_BTCToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_BTCToken.transactionSession.TransactOpts.Nonce.Add(_BTCToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_BTCToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _BTCToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_BTCToken *BTCTokenSession) Mint(_account common.Address, _amount *big.Int) (*types.Transaction, error) {
+	return _BTCToken.Contract.Mint(&_BTCToken.TransactOpts, _account, _amount)
 }
 
 // Mint is a paid mutator transaction binding the contract method 0x40c10f19.
 //
 // Solidity: function mint(address _account, uint256 _amount) returns()
-func (_BTCToken *BTCTokenTransactorSession) Mint(wait bool, _account common.Address, _amount *big.Int) (*types.Transaction, error) {
+func (_BTCToken *BTCTokenTransactorSession) Mint(_account common.Address, _amount *big.Int) (*types.Transaction, error) {
 	return _BTCToken.Contract.Mint(&_BTCToken.TransactOpts, _account, _amount)
 }
 
@@ -712,62 +486,17 @@ func (_BTCToken *BTCTokenTransactor) Transfer(opts *bind.TransactOpts, recipient
 	return _BTCToken.contract.Transact(opts, "transfer", recipient, amount)
 }
 
-func (_BTCToken *BTCTokenTransactor) TransferRawTx(opts *bind.TransactOpts, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	return _BTCToken.contract.RawTx(opts, "transfer", recipient, amount)
-}
-
 // Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
-// Will wait for tx receipt
 //
 // Solidity: function transfer(address recipient, uint256 amount) returns(bool)
-func (_BTCToken *BTCTokenSession) Transfer(recipient common.Address, amount *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_BTCToken.transactionSession.Lock()
-	tx, err := _BTCToken.Contract.Transfer(_BTCToken.transactionSession.TransactOpts, recipient, amount)
-	if err != nil {
-		_BTCToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_BTCToken.transactionSession.TransactOpts.Nonce.Add(_BTCToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_BTCToken.transactionSession.Unlock()
-	receipt, err := _BTCToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// Transfer returns raw transaction bound to the contract method 0xa9059cbb.
-//
-// Solidity: function transfer(address recipient, uint256 amount) returns(bool)
-func (_BTCToken *BTCTokenSession) TransferRawTx(recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	tx, err := _BTCToken.Contract.TransferRawTx(_BTCToken.transactionSession.TransactOpts, recipient, amount)
-	return tx, err
-}
-
-// Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function transfer(address recipient, uint256 amount) returns(bool)
-func (_BTCToken *BTCTokenSession) TransferAsync(receiptCh chan *types.ReceiptResult, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	_BTCToken.transactionSession.Lock()
-	tx, err := _BTCToken.Contract.Transfer(_BTCToken.transactionSession.TransactOpts, recipient, amount)
-	if err != nil {
-		_BTCToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_BTCToken.transactionSession.TransactOpts.Nonce.Add(_BTCToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_BTCToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _BTCToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_BTCToken *BTCTokenSession) Transfer(recipient common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _BTCToken.Contract.Transfer(&_BTCToken.TransactOpts, recipient, amount)
 }
 
 // Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
 //
 // Solidity: function transfer(address recipient, uint256 amount) returns(bool)
-func (_BTCToken *BTCTokenTransactorSession) Transfer(wait bool, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
+func (_BTCToken *BTCTokenTransactorSession) Transfer(recipient common.Address, amount *big.Int) (*types.Transaction, error) {
 	return _BTCToken.Contract.Transfer(&_BTCToken.TransactOpts, recipient, amount)
 }
 
@@ -778,62 +507,17 @@ func (_BTCToken *BTCTokenTransactor) TransferFrom(opts *bind.TransactOpts, sende
 	return _BTCToken.contract.Transact(opts, "transferFrom", sender, recipient, amount)
 }
 
-func (_BTCToken *BTCTokenTransactor) TransferFromRawTx(opts *bind.TransactOpts, sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	return _BTCToken.contract.RawTx(opts, "transferFrom", sender, recipient, amount)
-}
-
 // TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
-// Will wait for tx receipt
 //
 // Solidity: function transferFrom(address sender, address recipient, uint256 amount) returns(bool)
-func (_BTCToken *BTCTokenSession) TransferFrom(sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_BTCToken.transactionSession.Lock()
-	tx, err := _BTCToken.Contract.TransferFrom(_BTCToken.transactionSession.TransactOpts, sender, recipient, amount)
-	if err != nil {
-		_BTCToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_BTCToken.transactionSession.TransactOpts.Nonce.Add(_BTCToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_BTCToken.transactionSession.Unlock()
-	receipt, err := _BTCToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// TransferFrom returns raw transaction bound to the contract method 0x23b872dd.
-//
-// Solidity: function transferFrom(address sender, address recipient, uint256 amount) returns(bool)
-func (_BTCToken *BTCTokenSession) TransferFromRawTx(sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	tx, err := _BTCToken.Contract.TransferFromRawTx(_BTCToken.transactionSession.TransactOpts, sender, recipient, amount)
-	return tx, err
-}
-
-// TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function transferFrom(address sender, address recipient, uint256 amount) returns(bool)
-func (_BTCToken *BTCTokenSession) TransferFromAsync(receiptCh chan *types.ReceiptResult, sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	_BTCToken.transactionSession.Lock()
-	tx, err := _BTCToken.Contract.TransferFrom(_BTCToken.transactionSession.TransactOpts, sender, recipient, amount)
-	if err != nil {
-		_BTCToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_BTCToken.transactionSession.TransactOpts.Nonce.Add(_BTCToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_BTCToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _BTCToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_BTCToken *BTCTokenSession) TransferFrom(sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _BTCToken.Contract.TransferFrom(&_BTCToken.TransactOpts, sender, recipient, amount)
 }
 
 // TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
 //
 // Solidity: function transferFrom(address sender, address recipient, uint256 amount) returns(bool)
-func (_BTCToken *BTCTokenTransactorSession) TransferFrom(wait bool, sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
+func (_BTCToken *BTCTokenTransactorSession) TransferFrom(sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
 	return _BTCToken.Contract.TransferFrom(&_BTCToken.TransactOpts, sender, recipient, amount)
 }
 
@@ -987,6 +671,7 @@ func (_BTCToken *BTCTokenFilterer) ParseApproval(log types.Log) (*BTCTokenApprov
 	if err := _BTCToken.contract.UnpackLog(event, "Approval", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -1140,5 +825,6 @@ func (_BTCToken *BTCTokenFilterer) ParseTransfer(log types.Log) (*BTCTokenTransf
 	if err := _BTCToken.contract.UnpackLog(event, "Transfer", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }

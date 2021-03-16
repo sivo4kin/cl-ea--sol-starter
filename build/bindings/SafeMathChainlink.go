@@ -4,14 +4,14 @@
 package bindings
 
 import (
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strings"
-	//"github.com/sivo4kin/digiu-cross-chain/bind"
+
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -46,25 +46,6 @@ func DeploySafeMathChainlink(auth *bind.TransactOpts, backend bind.ContractBacke
 	return address, tx, &SafeMathChainlink{SafeMathChainlinkCaller: SafeMathChainlinkCaller{contract: contract}, SafeMathChainlinkTransactor: SafeMathChainlinkTransactor{contract: contract}, SafeMathChainlinkFilterer: SafeMathChainlinkFilterer{contract: contract}}, nil
 }
 
-// DeploySafeMathChainlinkSync deploys a new Ethereum contract and waits for receipt, binding an instance of SafeMathChainlinkSession to it.
-func DeploySafeMathChainlinkSync(session *bind.TransactSession, backend bind.ContractBackend) (*types.Transaction, *types.Receipt, *SafeMathChainlinkSession, error) {
-	parsed, err := abi.JSON(strings.NewReader(SafeMathChainlinkABI))
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	session.Lock()
-	address, tx, _, err := bind.DeployContract(session.TransactOpts, parsed, common.FromHex(SafeMathChainlinkBin), backend)
-	receipt, err := session.WaitTransaction(tx)
-	if err != nil {
-		session.Unlock()
-		return nil, nil, nil, err
-	}
-	session.TransactOpts.Nonce.Add(session.TransactOpts.Nonce, big.NewInt(1))
-	session.Unlock()
-	contractSession, err := NewSafeMathChainlinkSession(address, backend, session)
-	return tx, receipt, contractSession, err
-}
-
 // SafeMathChainlink is an auto generated Go binding around an Ethereum contract.
 type SafeMathChainlink struct {
 	SafeMathChainlinkCaller     // Read-only binding to the contract
@@ -90,9 +71,9 @@ type SafeMathChainlinkFilterer struct {
 // SafeMathChainlinkSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type SafeMathChainlinkSession struct {
-	Contract           *SafeMathChainlink // Generic contract binding to set the session for
-	transactionSession *bind.TransactSession
-	Address            common.Address
+	Contract     *SafeMathChainlink // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts      // Call options to use throughout this session
+	TransactOpts bind.TransactOpts  // Transaction auth options to use throughout this session
 }
 
 // SafeMathChainlinkCallerSession is an auto generated read-only Go binding around an Ethereum contract,
@@ -160,18 +141,6 @@ func NewSafeMathChainlinkFilterer(address common.Address, filterer bind.Contract
 	return &SafeMathChainlinkFilterer{contract: contract}, nil
 }
 
-func NewSafeMathChainlinkSession(address common.Address, backend bind.ContractBackend, transactionSession *bind.TransactSession) (*SafeMathChainlinkSession, error) {
-	SafeMathChainlinkInstance, err := NewSafeMathChainlink(address, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &SafeMathChainlinkSession{
-		Contract:           SafeMathChainlinkInstance,
-		transactionSession: transactionSession,
-		Address:            address,
-	}, nil
-}
-
 // bindSafeMathChainlink binds a generic wrapper to an already deployed contract.
 func bindSafeMathChainlink(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(SafeMathChainlinkABI))
@@ -185,7 +154,7 @@ func bindSafeMathChainlink(address common.Address, caller bind.ContractCaller, t
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_SafeMathChainlink *SafeMathChainlinkRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_SafeMathChainlink *SafeMathChainlinkRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _SafeMathChainlink.Contract.SafeMathChainlinkCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -204,7 +173,7 @@ func (_SafeMathChainlink *SafeMathChainlinkRaw) Transact(opts *bind.TransactOpts
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_SafeMathChainlink *SafeMathChainlinkCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_SafeMathChainlink *SafeMathChainlinkCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _SafeMathChainlink.Contract.contract.Call(opts, result, method, params...)
 }
 

@@ -4,14 +4,14 @@
 package bindings
 
 import (
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strings"
-	//"github.com/sivo4kin/digiu-cross-chain/bind"
+
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -46,25 +46,6 @@ func DeployECDSA(auth *bind.TransactOpts, backend bind.ContractBackend) (common.
 	return address, tx, &ECDSA{ECDSACaller: ECDSACaller{contract: contract}, ECDSATransactor: ECDSATransactor{contract: contract}, ECDSAFilterer: ECDSAFilterer{contract: contract}}, nil
 }
 
-// DeployECDSASync deploys a new Ethereum contract and waits for receipt, binding an instance of ECDSASession to it.
-func DeployECDSASync(session *bind.TransactSession, backend bind.ContractBackend) (*types.Transaction, *types.Receipt, *ECDSASession, error) {
-	parsed, err := abi.JSON(strings.NewReader(ECDSAABI))
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	session.Lock()
-	address, tx, _, err := bind.DeployContract(session.TransactOpts, parsed, common.FromHex(ECDSABin), backend)
-	receipt, err := session.WaitTransaction(tx)
-	if err != nil {
-		session.Unlock()
-		return nil, nil, nil, err
-	}
-	session.TransactOpts.Nonce.Add(session.TransactOpts.Nonce, big.NewInt(1))
-	session.Unlock()
-	contractSession, err := NewECDSASession(address, backend, session)
-	return tx, receipt, contractSession, err
-}
-
 // ECDSA is an auto generated Go binding around an Ethereum contract.
 type ECDSA struct {
 	ECDSACaller     // Read-only binding to the contract
@@ -90,9 +71,9 @@ type ECDSAFilterer struct {
 // ECDSASession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type ECDSASession struct {
-	Contract           *ECDSA // Generic contract binding to set the session for
-	transactionSession *bind.TransactSession
-	Address            common.Address
+	Contract     *ECDSA            // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
 // ECDSACallerSession is an auto generated read-only Go binding around an Ethereum contract,
@@ -160,18 +141,6 @@ func NewECDSAFilterer(address common.Address, filterer bind.ContractFilterer) (*
 	return &ECDSAFilterer{contract: contract}, nil
 }
 
-func NewECDSASession(address common.Address, backend bind.ContractBackend, transactionSession *bind.TransactSession) (*ECDSASession, error) {
-	ECDSAInstance, err := NewECDSA(address, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &ECDSASession{
-		Contract:           ECDSAInstance,
-		transactionSession: transactionSession,
-		Address:            address,
-	}, nil
-}
-
 // bindECDSA binds a generic wrapper to an already deployed contract.
 func bindECDSA(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(ECDSAABI))
@@ -185,7 +154,7 @@ func bindECDSA(address common.Address, caller bind.ContractCaller, transactor bi
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_ECDSA *ECDSARaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_ECDSA *ECDSARaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _ECDSA.Contract.ECDSACaller.contract.Call(opts, result, method, params...)
 }
 
@@ -204,7 +173,7 @@ func (_ECDSA *ECDSARaw) Transact(opts *bind.TransactOpts, method string, params 
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_ECDSA *ECDSACallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_ECDSA *ECDSACallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _ECDSA.Contract.contract.Call(opts, result, method, params...)
 }
 

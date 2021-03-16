@@ -4,14 +4,14 @@
 package bindings
 
 import (
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strings"
-	//"github.com/sivo4kin/digiu-cross-chain/bind"
+
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -46,25 +46,6 @@ func DeployMath(auth *bind.TransactOpts, backend bind.ContractBackend) (common.A
 	return address, tx, &Math{MathCaller: MathCaller{contract: contract}, MathTransactor: MathTransactor{contract: contract}, MathFilterer: MathFilterer{contract: contract}}, nil
 }
 
-// DeployMathSync deploys a new Ethereum contract and waits for receipt, binding an instance of MathSession to it.
-func DeployMathSync(session *bind.TransactSession, backend bind.ContractBackend) (*types.Transaction, *types.Receipt, *MathSession, error) {
-	parsed, err := abi.JSON(strings.NewReader(MathABI))
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	session.Lock()
-	address, tx, _, err := bind.DeployContract(session.TransactOpts, parsed, common.FromHex(MathBin), backend)
-	receipt, err := session.WaitTransaction(tx)
-	if err != nil {
-		session.Unlock()
-		return nil, nil, nil, err
-	}
-	session.TransactOpts.Nonce.Add(session.TransactOpts.Nonce, big.NewInt(1))
-	session.Unlock()
-	contractSession, err := NewMathSession(address, backend, session)
-	return tx, receipt, contractSession, err
-}
-
 // Math is an auto generated Go binding around an Ethereum contract.
 type Math struct {
 	MathCaller     // Read-only binding to the contract
@@ -90,9 +71,9 @@ type MathFilterer struct {
 // MathSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type MathSession struct {
-	Contract           *Math // Generic contract binding to set the session for
-	transactionSession *bind.TransactSession
-	Address            common.Address
+	Contract     *Math             // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
 // MathCallerSession is an auto generated read-only Go binding around an Ethereum contract,
@@ -160,18 +141,6 @@ func NewMathFilterer(address common.Address, filterer bind.ContractFilterer) (*M
 	return &MathFilterer{contract: contract}, nil
 }
 
-func NewMathSession(address common.Address, backend bind.ContractBackend, transactionSession *bind.TransactSession) (*MathSession, error) {
-	MathInstance, err := NewMath(address, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &MathSession{
-		Contract:           MathInstance,
-		transactionSession: transactionSession,
-		Address:            address,
-	}, nil
-}
-
 // bindMath binds a generic wrapper to an already deployed contract.
 func bindMath(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(MathABI))
@@ -185,7 +154,7 @@ func bindMath(address common.Address, caller bind.ContractCaller, transactor bin
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Math *MathRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_Math *MathRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _Math.Contract.MathCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -204,7 +173,7 @@ func (_Math *MathRaw) Transact(opts *bind.TransactOpts, method string, params ..
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Math *MathCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_Math *MathCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _Math.Contract.contract.Call(opts, result, method, params...)
 }
 

@@ -4,14 +4,14 @@
 package bindings
 
 import (
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strings"
-	//"github.com/sivo4kin/digiu-cross-chain/bind"
+
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -46,25 +46,6 @@ func DeployDigiUToken(auth *bind.TransactOpts, backend bind.ContractBackend) (co
 	return address, tx, &DigiUToken{DigiUTokenCaller: DigiUTokenCaller{contract: contract}, DigiUTokenTransactor: DigiUTokenTransactor{contract: contract}, DigiUTokenFilterer: DigiUTokenFilterer{contract: contract}}, nil
 }
 
-// DeployDigiUTokenSync deploys a new Ethereum contract and waits for receipt, binding an instance of DigiUTokenSession to it.
-func DeployDigiUTokenSync(session *bind.TransactSession, backend bind.ContractBackend) (*types.Transaction, *types.Receipt, *DigiUTokenSession, error) {
-	parsed, err := abi.JSON(strings.NewReader(DigiUTokenABI))
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	session.Lock()
-	address, tx, _, err := bind.DeployContract(session.TransactOpts, parsed, common.FromHex(DigiUTokenBin), backend)
-	receipt, err := session.WaitTransaction(tx)
-	if err != nil {
-		session.Unlock()
-		return nil, nil, nil, err
-	}
-	session.TransactOpts.Nonce.Add(session.TransactOpts.Nonce, big.NewInt(1))
-	session.Unlock()
-	contractSession, err := NewDigiUTokenSession(address, backend, session)
-	return tx, receipt, contractSession, err
-}
-
 // DigiUToken is an auto generated Go binding around an Ethereum contract.
 type DigiUToken struct {
 	DigiUTokenCaller     // Read-only binding to the contract
@@ -90,9 +71,9 @@ type DigiUTokenFilterer struct {
 // DigiUTokenSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type DigiUTokenSession struct {
-	Contract           *DigiUToken // Generic contract binding to set the session for
-	transactionSession *bind.TransactSession
-	Address            common.Address
+	Contract     *DigiUToken       // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
 // DigiUTokenCallerSession is an auto generated read-only Go binding around an Ethereum contract,
@@ -160,18 +141,6 @@ func NewDigiUTokenFilterer(address common.Address, filterer bind.ContractFiltere
 	return &DigiUTokenFilterer{contract: contract}, nil
 }
 
-func NewDigiUTokenSession(address common.Address, backend bind.ContractBackend, transactionSession *bind.TransactSession) (*DigiUTokenSession, error) {
-	DigiUTokenInstance, err := NewDigiUToken(address, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &DigiUTokenSession{
-		Contract:           DigiUTokenInstance,
-		transactionSession: transactionSession,
-		Address:            address,
-	}, nil
-}
-
 // bindDigiUToken binds a generic wrapper to an already deployed contract.
 func bindDigiUToken(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(DigiUTokenABI))
@@ -185,7 +154,7 @@ func bindDigiUToken(address common.Address, caller bind.ContractCaller, transact
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_DigiUToken *DigiUTokenRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_DigiUToken *DigiUTokenRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _DigiUToken.Contract.DigiUTokenCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -204,7 +173,7 @@ func (_DigiUToken *DigiUTokenRaw) Transact(opts *bind.TransactOpts, method strin
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_DigiUToken *DigiUTokenCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_DigiUToken *DigiUTokenCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _DigiUToken.Contract.contract.Call(opts, result, method, params...)
 }
 
@@ -223,19 +192,24 @@ func (_DigiUToken *DigiUTokenTransactorRaw) Transact(opts *bind.TransactOpts, me
 //
 // Solidity: function DELEGATION_TYPEHASH() view returns(bytes32)
 func (_DigiUToken *DigiUTokenCaller) DELEGATIONTYPEHASH(opts *bind.CallOpts) ([32]byte, error) {
-	var (
-		ret0 = new([32]byte)
-	)
-	out := ret0
-	err := _DigiUToken.contract.Call(opts, out, "DELEGATION_TYPEHASH")
-	return *ret0, err
+	var out []interface{}
+	err := _DigiUToken.contract.Call(opts, &out, "DELEGATION_TYPEHASH")
+
+	if err != nil {
+		return *new([32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+
+	return out0, err
+
 }
 
 // DELEGATIONTYPEHASH is a free data retrieval call binding the contract method 0xe7a324dc.
 //
 // Solidity: function DELEGATION_TYPEHASH() view returns(bytes32)
 func (_DigiUToken *DigiUTokenSession) DELEGATIONTYPEHASH() ([32]byte, error) {
-	return _DigiUToken.Contract.DELEGATIONTYPEHASH(_DigiUToken.transactionSession.CallOpts)
+	return _DigiUToken.Contract.DELEGATIONTYPEHASH(&_DigiUToken.CallOpts)
 }
 
 // DELEGATIONTYPEHASH is a free data retrieval call binding the contract method 0xe7a324dc.
@@ -249,19 +223,24 @@ func (_DigiUToken *DigiUTokenCallerSession) DELEGATIONTYPEHASH() ([32]byte, erro
 //
 // Solidity: function DOMAIN_TYPEHASH() view returns(bytes32)
 func (_DigiUToken *DigiUTokenCaller) DOMAINTYPEHASH(opts *bind.CallOpts) ([32]byte, error) {
-	var (
-		ret0 = new([32]byte)
-	)
-	out := ret0
-	err := _DigiUToken.contract.Call(opts, out, "DOMAIN_TYPEHASH")
-	return *ret0, err
+	var out []interface{}
+	err := _DigiUToken.contract.Call(opts, &out, "DOMAIN_TYPEHASH")
+
+	if err != nil {
+		return *new([32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+
+	return out0, err
+
 }
 
 // DOMAINTYPEHASH is a free data retrieval call binding the contract method 0x20606b70.
 //
 // Solidity: function DOMAIN_TYPEHASH() view returns(bytes32)
 func (_DigiUToken *DigiUTokenSession) DOMAINTYPEHASH() ([32]byte, error) {
-	return _DigiUToken.Contract.DOMAINTYPEHASH(_DigiUToken.transactionSession.CallOpts)
+	return _DigiUToken.Contract.DOMAINTYPEHASH(&_DigiUToken.CallOpts)
 }
 
 // DOMAINTYPEHASH is a free data retrieval call binding the contract method 0x20606b70.
@@ -275,19 +254,24 @@ func (_DigiUToken *DigiUTokenCallerSession) DOMAINTYPEHASH() ([32]byte, error) {
 //
 // Solidity: function allowance(address owner, address spender) view returns(uint256)
 func (_DigiUToken *DigiUTokenCaller) Allowance(opts *bind.CallOpts, owner common.Address, spender common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _DigiUToken.contract.Call(opts, out, "allowance", owner, spender)
-	return *ret0, err
+	var out []interface{}
+	err := _DigiUToken.contract.Call(opts, &out, "allowance", owner, spender)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // Allowance is a free data retrieval call binding the contract method 0xdd62ed3e.
 //
 // Solidity: function allowance(address owner, address spender) view returns(uint256)
 func (_DigiUToken *DigiUTokenSession) Allowance(owner common.Address, spender common.Address) (*big.Int, error) {
-	return _DigiUToken.Contract.Allowance(_DigiUToken.transactionSession.CallOpts, owner, spender)
+	return _DigiUToken.Contract.Allowance(&_DigiUToken.CallOpts, owner, spender)
 }
 
 // Allowance is a free data retrieval call binding the contract method 0xdd62ed3e.
@@ -301,19 +285,24 @@ func (_DigiUToken *DigiUTokenCallerSession) Allowance(owner common.Address, spen
 //
 // Solidity: function balanceOf(address account) view returns(uint256)
 func (_DigiUToken *DigiUTokenCaller) BalanceOf(opts *bind.CallOpts, account common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _DigiUToken.contract.Call(opts, out, "balanceOf", account)
-	return *ret0, err
+	var out []interface{}
+	err := _DigiUToken.contract.Call(opts, &out, "balanceOf", account)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
 //
 // Solidity: function balanceOf(address account) view returns(uint256)
 func (_DigiUToken *DigiUTokenSession) BalanceOf(account common.Address) (*big.Int, error) {
-	return _DigiUToken.Contract.BalanceOf(_DigiUToken.transactionSession.CallOpts, account)
+	return _DigiUToken.Contract.BalanceOf(&_DigiUToken.CallOpts, account)
 }
 
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
@@ -330,13 +319,22 @@ func (_DigiUToken *DigiUTokenCaller) Checkpoints(opts *bind.CallOpts, arg0 commo
 	FromBlock uint32
 	Votes     *big.Int
 }, error) {
-	ret := new(struct {
+	var out []interface{}
+	err := _DigiUToken.contract.Call(opts, &out, "checkpoints", arg0, arg1)
+
+	outstruct := new(struct {
 		FromBlock uint32
 		Votes     *big.Int
 	})
-	out := ret
-	err := _DigiUToken.contract.Call(opts, out, "checkpoints", arg0, arg1)
-	return *ret, err
+	if err != nil {
+		return *outstruct, err
+	}
+
+	outstruct.FromBlock = *abi.ConvertType(out[0], new(uint32)).(*uint32)
+	outstruct.Votes = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
+
+	return *outstruct, err
+
 }
 
 // Checkpoints is a free data retrieval call binding the contract method 0xf1127ed8.
@@ -346,7 +344,7 @@ func (_DigiUToken *DigiUTokenSession) Checkpoints(arg0 common.Address, arg1 uint
 	FromBlock uint32
 	Votes     *big.Int
 }, error) {
-	return _DigiUToken.Contract.Checkpoints(_DigiUToken.transactionSession.CallOpts, arg0, arg1)
+	return _DigiUToken.Contract.Checkpoints(&_DigiUToken.CallOpts, arg0, arg1)
 }
 
 // Checkpoints is a free data retrieval call binding the contract method 0xf1127ed8.
@@ -363,19 +361,24 @@ func (_DigiUToken *DigiUTokenCallerSession) Checkpoints(arg0 common.Address, arg
 //
 // Solidity: function decimals() view returns(uint8)
 func (_DigiUToken *DigiUTokenCaller) Decimals(opts *bind.CallOpts) (uint8, error) {
-	var (
-		ret0 = new(uint8)
-	)
-	out := ret0
-	err := _DigiUToken.contract.Call(opts, out, "decimals")
-	return *ret0, err
+	var out []interface{}
+	err := _DigiUToken.contract.Call(opts, &out, "decimals")
+
+	if err != nil {
+		return *new(uint8), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint8)).(*uint8)
+
+	return out0, err
+
 }
 
 // Decimals is a free data retrieval call binding the contract method 0x313ce567.
 //
 // Solidity: function decimals() view returns(uint8)
 func (_DigiUToken *DigiUTokenSession) Decimals() (uint8, error) {
-	return _DigiUToken.Contract.Decimals(_DigiUToken.transactionSession.CallOpts)
+	return _DigiUToken.Contract.Decimals(&_DigiUToken.CallOpts)
 }
 
 // Decimals is a free data retrieval call binding the contract method 0x313ce567.
@@ -389,19 +392,24 @@ func (_DigiUToken *DigiUTokenCallerSession) Decimals() (uint8, error) {
 //
 // Solidity: function delegates(address delegator) view returns(address)
 func (_DigiUToken *DigiUTokenCaller) Delegates(opts *bind.CallOpts, delegator common.Address) (common.Address, error) {
-	var (
-		ret0 = new(common.Address)
-	)
-	out := ret0
-	err := _DigiUToken.contract.Call(opts, out, "delegates", delegator)
-	return *ret0, err
+	var out []interface{}
+	err := _DigiUToken.contract.Call(opts, &out, "delegates", delegator)
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
 }
 
 // Delegates is a free data retrieval call binding the contract method 0x587cde1e.
 //
 // Solidity: function delegates(address delegator) view returns(address)
 func (_DigiUToken *DigiUTokenSession) Delegates(delegator common.Address) (common.Address, error) {
-	return _DigiUToken.Contract.Delegates(_DigiUToken.transactionSession.CallOpts, delegator)
+	return _DigiUToken.Contract.Delegates(&_DigiUToken.CallOpts, delegator)
 }
 
 // Delegates is a free data retrieval call binding the contract method 0x587cde1e.
@@ -415,19 +423,24 @@ func (_DigiUToken *DigiUTokenCallerSession) Delegates(delegator common.Address) 
 //
 // Solidity: function getCurrentVotes(address account) view returns(uint256)
 func (_DigiUToken *DigiUTokenCaller) GetCurrentVotes(opts *bind.CallOpts, account common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _DigiUToken.contract.Call(opts, out, "getCurrentVotes", account)
-	return *ret0, err
+	var out []interface{}
+	err := _DigiUToken.contract.Call(opts, &out, "getCurrentVotes", account)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // GetCurrentVotes is a free data retrieval call binding the contract method 0xb4b5ea57.
 //
 // Solidity: function getCurrentVotes(address account) view returns(uint256)
 func (_DigiUToken *DigiUTokenSession) GetCurrentVotes(account common.Address) (*big.Int, error) {
-	return _DigiUToken.Contract.GetCurrentVotes(_DigiUToken.transactionSession.CallOpts, account)
+	return _DigiUToken.Contract.GetCurrentVotes(&_DigiUToken.CallOpts, account)
 }
 
 // GetCurrentVotes is a free data retrieval call binding the contract method 0xb4b5ea57.
@@ -441,19 +454,24 @@ func (_DigiUToken *DigiUTokenCallerSession) GetCurrentVotes(account common.Addre
 //
 // Solidity: function getPriorVotes(address account, uint256 blockNumber) view returns(uint256)
 func (_DigiUToken *DigiUTokenCaller) GetPriorVotes(opts *bind.CallOpts, account common.Address, blockNumber *big.Int) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _DigiUToken.contract.Call(opts, out, "getPriorVotes", account, blockNumber)
-	return *ret0, err
+	var out []interface{}
+	err := _DigiUToken.contract.Call(opts, &out, "getPriorVotes", account, blockNumber)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // GetPriorVotes is a free data retrieval call binding the contract method 0x782d6fe1.
 //
 // Solidity: function getPriorVotes(address account, uint256 blockNumber) view returns(uint256)
 func (_DigiUToken *DigiUTokenSession) GetPriorVotes(account common.Address, blockNumber *big.Int) (*big.Int, error) {
-	return _DigiUToken.Contract.GetPriorVotes(_DigiUToken.transactionSession.CallOpts, account, blockNumber)
+	return _DigiUToken.Contract.GetPriorVotes(&_DigiUToken.CallOpts, account, blockNumber)
 }
 
 // GetPriorVotes is a free data retrieval call binding the contract method 0x782d6fe1.
@@ -467,19 +485,24 @@ func (_DigiUToken *DigiUTokenCallerSession) GetPriorVotes(account common.Address
 //
 // Solidity: function name() view returns(string)
 func (_DigiUToken *DigiUTokenCaller) Name(opts *bind.CallOpts) (string, error) {
-	var (
-		ret0 = new(string)
-	)
-	out := ret0
-	err := _DigiUToken.contract.Call(opts, out, "name")
-	return *ret0, err
+	var out []interface{}
+	err := _DigiUToken.contract.Call(opts, &out, "name")
+
+	if err != nil {
+		return *new(string), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(string)).(*string)
+
+	return out0, err
+
 }
 
 // Name is a free data retrieval call binding the contract method 0x06fdde03.
 //
 // Solidity: function name() view returns(string)
 func (_DigiUToken *DigiUTokenSession) Name() (string, error) {
-	return _DigiUToken.Contract.Name(_DigiUToken.transactionSession.CallOpts)
+	return _DigiUToken.Contract.Name(&_DigiUToken.CallOpts)
 }
 
 // Name is a free data retrieval call binding the contract method 0x06fdde03.
@@ -493,19 +516,24 @@ func (_DigiUToken *DigiUTokenCallerSession) Name() (string, error) {
 //
 // Solidity: function nonces(address ) view returns(uint256)
 func (_DigiUToken *DigiUTokenCaller) Nonces(opts *bind.CallOpts, arg0 common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _DigiUToken.contract.Call(opts, out, "nonces", arg0)
-	return *ret0, err
+	var out []interface{}
+	err := _DigiUToken.contract.Call(opts, &out, "nonces", arg0)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // Nonces is a free data retrieval call binding the contract method 0x7ecebe00.
 //
 // Solidity: function nonces(address ) view returns(uint256)
 func (_DigiUToken *DigiUTokenSession) Nonces(arg0 common.Address) (*big.Int, error) {
-	return _DigiUToken.Contract.Nonces(_DigiUToken.transactionSession.CallOpts, arg0)
+	return _DigiUToken.Contract.Nonces(&_DigiUToken.CallOpts, arg0)
 }
 
 // Nonces is a free data retrieval call binding the contract method 0x7ecebe00.
@@ -519,19 +547,24 @@ func (_DigiUToken *DigiUTokenCallerSession) Nonces(arg0 common.Address) (*big.In
 //
 // Solidity: function numCheckpoints(address ) view returns(uint32)
 func (_DigiUToken *DigiUTokenCaller) NumCheckpoints(opts *bind.CallOpts, arg0 common.Address) (uint32, error) {
-	var (
-		ret0 = new(uint32)
-	)
-	out := ret0
-	err := _DigiUToken.contract.Call(opts, out, "numCheckpoints", arg0)
-	return *ret0, err
+	var out []interface{}
+	err := _DigiUToken.contract.Call(opts, &out, "numCheckpoints", arg0)
+
+	if err != nil {
+		return *new(uint32), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint32)).(*uint32)
+
+	return out0, err
+
 }
 
 // NumCheckpoints is a free data retrieval call binding the contract method 0x6fcfff45.
 //
 // Solidity: function numCheckpoints(address ) view returns(uint32)
 func (_DigiUToken *DigiUTokenSession) NumCheckpoints(arg0 common.Address) (uint32, error) {
-	return _DigiUToken.Contract.NumCheckpoints(_DigiUToken.transactionSession.CallOpts, arg0)
+	return _DigiUToken.Contract.NumCheckpoints(&_DigiUToken.CallOpts, arg0)
 }
 
 // NumCheckpoints is a free data retrieval call binding the contract method 0x6fcfff45.
@@ -545,19 +578,24 @@ func (_DigiUToken *DigiUTokenCallerSession) NumCheckpoints(arg0 common.Address) 
 //
 // Solidity: function owner() view returns(address)
 func (_DigiUToken *DigiUTokenCaller) Owner(opts *bind.CallOpts) (common.Address, error) {
-	var (
-		ret0 = new(common.Address)
-	)
-	out := ret0
-	err := _DigiUToken.contract.Call(opts, out, "owner")
-	return *ret0, err
+	var out []interface{}
+	err := _DigiUToken.contract.Call(opts, &out, "owner")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
 //
 // Solidity: function owner() view returns(address)
 func (_DigiUToken *DigiUTokenSession) Owner() (common.Address, error) {
-	return _DigiUToken.Contract.Owner(_DigiUToken.transactionSession.CallOpts)
+	return _DigiUToken.Contract.Owner(&_DigiUToken.CallOpts)
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
@@ -571,19 +609,24 @@ func (_DigiUToken *DigiUTokenCallerSession) Owner() (common.Address, error) {
 //
 // Solidity: function symbol() view returns(string)
 func (_DigiUToken *DigiUTokenCaller) Symbol(opts *bind.CallOpts) (string, error) {
-	var (
-		ret0 = new(string)
-	)
-	out := ret0
-	err := _DigiUToken.contract.Call(opts, out, "symbol")
-	return *ret0, err
+	var out []interface{}
+	err := _DigiUToken.contract.Call(opts, &out, "symbol")
+
+	if err != nil {
+		return *new(string), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(string)).(*string)
+
+	return out0, err
+
 }
 
 // Symbol is a free data retrieval call binding the contract method 0x95d89b41.
 //
 // Solidity: function symbol() view returns(string)
 func (_DigiUToken *DigiUTokenSession) Symbol() (string, error) {
-	return _DigiUToken.Contract.Symbol(_DigiUToken.transactionSession.CallOpts)
+	return _DigiUToken.Contract.Symbol(&_DigiUToken.CallOpts)
 }
 
 // Symbol is a free data retrieval call binding the contract method 0x95d89b41.
@@ -597,19 +640,24 @@ func (_DigiUToken *DigiUTokenCallerSession) Symbol() (string, error) {
 //
 // Solidity: function totalSupply() view returns(uint256)
 func (_DigiUToken *DigiUTokenCaller) TotalSupply(opts *bind.CallOpts) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _DigiUToken.contract.Call(opts, out, "totalSupply")
-	return *ret0, err
+	var out []interface{}
+	err := _DigiUToken.contract.Call(opts, &out, "totalSupply")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // TotalSupply is a free data retrieval call binding the contract method 0x18160ddd.
 //
 // Solidity: function totalSupply() view returns(uint256)
 func (_DigiUToken *DigiUTokenSession) TotalSupply() (*big.Int, error) {
-	return _DigiUToken.Contract.TotalSupply(_DigiUToken.transactionSession.CallOpts)
+	return _DigiUToken.Contract.TotalSupply(&_DigiUToken.CallOpts)
 }
 
 // TotalSupply is a free data retrieval call binding the contract method 0x18160ddd.
@@ -626,62 +674,17 @@ func (_DigiUToken *DigiUTokenTransactor) Approve(opts *bind.TransactOpts, spende
 	return _DigiUToken.contract.Transact(opts, "approve", spender, amount)
 }
 
-func (_DigiUToken *DigiUTokenTransactor) ApproveRawTx(opts *bind.TransactOpts, spender common.Address, amount *big.Int) (*types.Transaction, error) {
-	return _DigiUToken.contract.RawTx(opts, "approve", spender, amount)
-}
-
 // Approve is a paid mutator transaction binding the contract method 0x095ea7b3.
-// Will wait for tx receipt
 //
 // Solidity: function approve(address spender, uint256 amount) returns(bool)
-func (_DigiUToken *DigiUTokenSession) Approve(spender common.Address, amount *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_DigiUToken.transactionSession.Lock()
-	tx, err := _DigiUToken.Contract.Approve(_DigiUToken.transactionSession.TransactOpts, spender, amount)
-	if err != nil {
-		_DigiUToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_DigiUToken.transactionSession.TransactOpts.Nonce.Add(_DigiUToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DigiUToken.transactionSession.Unlock()
-	receipt, err := _DigiUToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// Approve returns raw transaction bound to the contract method 0x095ea7b3.
-//
-// Solidity: function approve(address spender, uint256 amount) returns(bool)
-func (_DigiUToken *DigiUTokenSession) ApproveRawTx(spender common.Address, amount *big.Int) (*types.Transaction, error) {
-	tx, err := _DigiUToken.Contract.ApproveRawTx(_DigiUToken.transactionSession.TransactOpts, spender, amount)
-	return tx, err
-}
-
-// Approve is a paid mutator transaction binding the contract method 0x095ea7b3.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function approve(address spender, uint256 amount) returns(bool)
-func (_DigiUToken *DigiUTokenSession) ApproveAsync(receiptCh chan *types.ReceiptResult, spender common.Address, amount *big.Int) (*types.Transaction, error) {
-	_DigiUToken.transactionSession.Lock()
-	tx, err := _DigiUToken.Contract.Approve(_DigiUToken.transactionSession.TransactOpts, spender, amount)
-	if err != nil {
-		_DigiUToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_DigiUToken.transactionSession.TransactOpts.Nonce.Add(_DigiUToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DigiUToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _DigiUToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_DigiUToken *DigiUTokenSession) Approve(spender common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _DigiUToken.Contract.Approve(&_DigiUToken.TransactOpts, spender, amount)
 }
 
 // Approve is a paid mutator transaction binding the contract method 0x095ea7b3.
 //
 // Solidity: function approve(address spender, uint256 amount) returns(bool)
-func (_DigiUToken *DigiUTokenTransactorSession) Approve(wait bool, spender common.Address, amount *big.Int) (*types.Transaction, error) {
+func (_DigiUToken *DigiUTokenTransactorSession) Approve(spender common.Address, amount *big.Int) (*types.Transaction, error) {
 	return _DigiUToken.Contract.Approve(&_DigiUToken.TransactOpts, spender, amount)
 }
 
@@ -692,62 +695,17 @@ func (_DigiUToken *DigiUTokenTransactor) DecreaseAllowance(opts *bind.TransactOp
 	return _DigiUToken.contract.Transact(opts, "decreaseAllowance", spender, subtractedValue)
 }
 
-func (_DigiUToken *DigiUTokenTransactor) DecreaseAllowanceRawTx(opts *bind.TransactOpts, spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
-	return _DigiUToken.contract.RawTx(opts, "decreaseAllowance", spender, subtractedValue)
-}
-
 // DecreaseAllowance is a paid mutator transaction binding the contract method 0xa457c2d7.
-// Will wait for tx receipt
 //
 // Solidity: function decreaseAllowance(address spender, uint256 subtractedValue) returns(bool)
-func (_DigiUToken *DigiUTokenSession) DecreaseAllowance(spender common.Address, subtractedValue *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_DigiUToken.transactionSession.Lock()
-	tx, err := _DigiUToken.Contract.DecreaseAllowance(_DigiUToken.transactionSession.TransactOpts, spender, subtractedValue)
-	if err != nil {
-		_DigiUToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_DigiUToken.transactionSession.TransactOpts.Nonce.Add(_DigiUToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DigiUToken.transactionSession.Unlock()
-	receipt, err := _DigiUToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// DecreaseAllowance returns raw transaction bound to the contract method 0xa457c2d7.
-//
-// Solidity: function decreaseAllowance(address spender, uint256 subtractedValue) returns(bool)
-func (_DigiUToken *DigiUTokenSession) DecreaseAllowanceRawTx(spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
-	tx, err := _DigiUToken.Contract.DecreaseAllowanceRawTx(_DigiUToken.transactionSession.TransactOpts, spender, subtractedValue)
-	return tx, err
-}
-
-// DecreaseAllowance is a paid mutator transaction binding the contract method 0xa457c2d7.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function decreaseAllowance(address spender, uint256 subtractedValue) returns(bool)
-func (_DigiUToken *DigiUTokenSession) DecreaseAllowanceAsync(receiptCh chan *types.ReceiptResult, spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
-	_DigiUToken.transactionSession.Lock()
-	tx, err := _DigiUToken.Contract.DecreaseAllowance(_DigiUToken.transactionSession.TransactOpts, spender, subtractedValue)
-	if err != nil {
-		_DigiUToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_DigiUToken.transactionSession.TransactOpts.Nonce.Add(_DigiUToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DigiUToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _DigiUToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_DigiUToken *DigiUTokenSession) DecreaseAllowance(spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
+	return _DigiUToken.Contract.DecreaseAllowance(&_DigiUToken.TransactOpts, spender, subtractedValue)
 }
 
 // DecreaseAllowance is a paid mutator transaction binding the contract method 0xa457c2d7.
 //
 // Solidity: function decreaseAllowance(address spender, uint256 subtractedValue) returns(bool)
-func (_DigiUToken *DigiUTokenTransactorSession) DecreaseAllowance(wait bool, spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
+func (_DigiUToken *DigiUTokenTransactorSession) DecreaseAllowance(spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
 	return _DigiUToken.Contract.DecreaseAllowance(&_DigiUToken.TransactOpts, spender, subtractedValue)
 }
 
@@ -758,62 +716,17 @@ func (_DigiUToken *DigiUTokenTransactor) Delegate(opts *bind.TransactOpts, deleg
 	return _DigiUToken.contract.Transact(opts, "delegate", delegatee)
 }
 
-func (_DigiUToken *DigiUTokenTransactor) DelegateRawTx(opts *bind.TransactOpts, delegatee common.Address) (*types.Transaction, error) {
-	return _DigiUToken.contract.RawTx(opts, "delegate", delegatee)
-}
-
 // Delegate is a paid mutator transaction binding the contract method 0x5c19a95c.
-// Will wait for tx receipt
 //
 // Solidity: function delegate(address delegatee) returns()
-func (_DigiUToken *DigiUTokenSession) Delegate(delegatee common.Address) (*types.Transaction, *types.Receipt, error) {
-	_DigiUToken.transactionSession.Lock()
-	tx, err := _DigiUToken.Contract.Delegate(_DigiUToken.transactionSession.TransactOpts, delegatee)
-	if err != nil {
-		_DigiUToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_DigiUToken.transactionSession.TransactOpts.Nonce.Add(_DigiUToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DigiUToken.transactionSession.Unlock()
-	receipt, err := _DigiUToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// Delegate returns raw transaction bound to the contract method 0x5c19a95c.
-//
-// Solidity: function delegate(address delegatee) returns()
-func (_DigiUToken *DigiUTokenSession) DelegateRawTx(delegatee common.Address) (*types.Transaction, error) {
-	tx, err := _DigiUToken.Contract.DelegateRawTx(_DigiUToken.transactionSession.TransactOpts, delegatee)
-	return tx, err
-}
-
-// Delegate is a paid mutator transaction binding the contract method 0x5c19a95c.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function delegate(address delegatee) returns()
-func (_DigiUToken *DigiUTokenSession) DelegateAsync(receiptCh chan *types.ReceiptResult, delegatee common.Address) (*types.Transaction, error) {
-	_DigiUToken.transactionSession.Lock()
-	tx, err := _DigiUToken.Contract.Delegate(_DigiUToken.transactionSession.TransactOpts, delegatee)
-	if err != nil {
-		_DigiUToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_DigiUToken.transactionSession.TransactOpts.Nonce.Add(_DigiUToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DigiUToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _DigiUToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_DigiUToken *DigiUTokenSession) Delegate(delegatee common.Address) (*types.Transaction, error) {
+	return _DigiUToken.Contract.Delegate(&_DigiUToken.TransactOpts, delegatee)
 }
 
 // Delegate is a paid mutator transaction binding the contract method 0x5c19a95c.
 //
 // Solidity: function delegate(address delegatee) returns()
-func (_DigiUToken *DigiUTokenTransactorSession) Delegate(wait bool, delegatee common.Address) (*types.Transaction, error) {
+func (_DigiUToken *DigiUTokenTransactorSession) Delegate(delegatee common.Address) (*types.Transaction, error) {
 	return _DigiUToken.Contract.Delegate(&_DigiUToken.TransactOpts, delegatee)
 }
 
@@ -824,62 +737,17 @@ func (_DigiUToken *DigiUTokenTransactor) DelegateBySig(opts *bind.TransactOpts, 
 	return _DigiUToken.contract.Transact(opts, "delegateBySig", delegatee, nonce, expiry, v, r, s)
 }
 
-func (_DigiUToken *DigiUTokenTransactor) DelegateBySigRawTx(opts *bind.TransactOpts, delegatee common.Address, nonce *big.Int, expiry *big.Int, v uint8, r [32]byte, s [32]byte) (*types.Transaction, error) {
-	return _DigiUToken.contract.RawTx(opts, "delegateBySig", delegatee, nonce, expiry, v, r, s)
-}
-
 // DelegateBySig is a paid mutator transaction binding the contract method 0xc3cda520.
-// Will wait for tx receipt
 //
 // Solidity: function delegateBySig(address delegatee, uint256 nonce, uint256 expiry, uint8 v, bytes32 r, bytes32 s) returns()
-func (_DigiUToken *DigiUTokenSession) DelegateBySig(delegatee common.Address, nonce *big.Int, expiry *big.Int, v uint8, r [32]byte, s [32]byte) (*types.Transaction, *types.Receipt, error) {
-	_DigiUToken.transactionSession.Lock()
-	tx, err := _DigiUToken.Contract.DelegateBySig(_DigiUToken.transactionSession.TransactOpts, delegatee, nonce, expiry, v, r, s)
-	if err != nil {
-		_DigiUToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_DigiUToken.transactionSession.TransactOpts.Nonce.Add(_DigiUToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DigiUToken.transactionSession.Unlock()
-	receipt, err := _DigiUToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// DelegateBySig returns raw transaction bound to the contract method 0xc3cda520.
-//
-// Solidity: function delegateBySig(address delegatee, uint256 nonce, uint256 expiry, uint8 v, bytes32 r, bytes32 s) returns()
-func (_DigiUToken *DigiUTokenSession) DelegateBySigRawTx(delegatee common.Address, nonce *big.Int, expiry *big.Int, v uint8, r [32]byte, s [32]byte) (*types.Transaction, error) {
-	tx, err := _DigiUToken.Contract.DelegateBySigRawTx(_DigiUToken.transactionSession.TransactOpts, delegatee, nonce, expiry, v, r, s)
-	return tx, err
-}
-
-// DelegateBySig is a paid mutator transaction binding the contract method 0xc3cda520.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function delegateBySig(address delegatee, uint256 nonce, uint256 expiry, uint8 v, bytes32 r, bytes32 s) returns()
-func (_DigiUToken *DigiUTokenSession) DelegateBySigAsync(receiptCh chan *types.ReceiptResult, delegatee common.Address, nonce *big.Int, expiry *big.Int, v uint8, r [32]byte, s [32]byte) (*types.Transaction, error) {
-	_DigiUToken.transactionSession.Lock()
-	tx, err := _DigiUToken.Contract.DelegateBySig(_DigiUToken.transactionSession.TransactOpts, delegatee, nonce, expiry, v, r, s)
-	if err != nil {
-		_DigiUToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_DigiUToken.transactionSession.TransactOpts.Nonce.Add(_DigiUToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DigiUToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _DigiUToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_DigiUToken *DigiUTokenSession) DelegateBySig(delegatee common.Address, nonce *big.Int, expiry *big.Int, v uint8, r [32]byte, s [32]byte) (*types.Transaction, error) {
+	return _DigiUToken.Contract.DelegateBySig(&_DigiUToken.TransactOpts, delegatee, nonce, expiry, v, r, s)
 }
 
 // DelegateBySig is a paid mutator transaction binding the contract method 0xc3cda520.
 //
 // Solidity: function delegateBySig(address delegatee, uint256 nonce, uint256 expiry, uint8 v, bytes32 r, bytes32 s) returns()
-func (_DigiUToken *DigiUTokenTransactorSession) DelegateBySig(wait bool, delegatee common.Address, nonce *big.Int, expiry *big.Int, v uint8, r [32]byte, s [32]byte) (*types.Transaction, error) {
+func (_DigiUToken *DigiUTokenTransactorSession) DelegateBySig(delegatee common.Address, nonce *big.Int, expiry *big.Int, v uint8, r [32]byte, s [32]byte) (*types.Transaction, error) {
 	return _DigiUToken.Contract.DelegateBySig(&_DigiUToken.TransactOpts, delegatee, nonce, expiry, v, r, s)
 }
 
@@ -890,62 +758,17 @@ func (_DigiUToken *DigiUTokenTransactor) IncreaseAllowance(opts *bind.TransactOp
 	return _DigiUToken.contract.Transact(opts, "increaseAllowance", spender, addedValue)
 }
 
-func (_DigiUToken *DigiUTokenTransactor) IncreaseAllowanceRawTx(opts *bind.TransactOpts, spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
-	return _DigiUToken.contract.RawTx(opts, "increaseAllowance", spender, addedValue)
-}
-
 // IncreaseAllowance is a paid mutator transaction binding the contract method 0x39509351.
-// Will wait for tx receipt
 //
 // Solidity: function increaseAllowance(address spender, uint256 addedValue) returns(bool)
-func (_DigiUToken *DigiUTokenSession) IncreaseAllowance(spender common.Address, addedValue *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_DigiUToken.transactionSession.Lock()
-	tx, err := _DigiUToken.Contract.IncreaseAllowance(_DigiUToken.transactionSession.TransactOpts, spender, addedValue)
-	if err != nil {
-		_DigiUToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_DigiUToken.transactionSession.TransactOpts.Nonce.Add(_DigiUToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DigiUToken.transactionSession.Unlock()
-	receipt, err := _DigiUToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// IncreaseAllowance returns raw transaction bound to the contract method 0x39509351.
-//
-// Solidity: function increaseAllowance(address spender, uint256 addedValue) returns(bool)
-func (_DigiUToken *DigiUTokenSession) IncreaseAllowanceRawTx(spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
-	tx, err := _DigiUToken.Contract.IncreaseAllowanceRawTx(_DigiUToken.transactionSession.TransactOpts, spender, addedValue)
-	return tx, err
-}
-
-// IncreaseAllowance is a paid mutator transaction binding the contract method 0x39509351.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function increaseAllowance(address spender, uint256 addedValue) returns(bool)
-func (_DigiUToken *DigiUTokenSession) IncreaseAllowanceAsync(receiptCh chan *types.ReceiptResult, spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
-	_DigiUToken.transactionSession.Lock()
-	tx, err := _DigiUToken.Contract.IncreaseAllowance(_DigiUToken.transactionSession.TransactOpts, spender, addedValue)
-	if err != nil {
-		_DigiUToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_DigiUToken.transactionSession.TransactOpts.Nonce.Add(_DigiUToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DigiUToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _DigiUToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_DigiUToken *DigiUTokenSession) IncreaseAllowance(spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
+	return _DigiUToken.Contract.IncreaseAllowance(&_DigiUToken.TransactOpts, spender, addedValue)
 }
 
 // IncreaseAllowance is a paid mutator transaction binding the contract method 0x39509351.
 //
 // Solidity: function increaseAllowance(address spender, uint256 addedValue) returns(bool)
-func (_DigiUToken *DigiUTokenTransactorSession) IncreaseAllowance(wait bool, spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
+func (_DigiUToken *DigiUTokenTransactorSession) IncreaseAllowance(spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
 	return _DigiUToken.Contract.IncreaseAllowance(&_DigiUToken.TransactOpts, spender, addedValue)
 }
 
@@ -956,62 +779,17 @@ func (_DigiUToken *DigiUTokenTransactor) Mint(opts *bind.TransactOpts, _to commo
 	return _DigiUToken.contract.Transact(opts, "mint", _to, _amount)
 }
 
-func (_DigiUToken *DigiUTokenTransactor) MintRawTx(opts *bind.TransactOpts, _to common.Address, _amount *big.Int) (*types.Transaction, error) {
-	return _DigiUToken.contract.RawTx(opts, "mint", _to, _amount)
-}
-
 // Mint is a paid mutator transaction binding the contract method 0x40c10f19.
-// Will wait for tx receipt
 //
 // Solidity: function mint(address _to, uint256 _amount) returns()
-func (_DigiUToken *DigiUTokenSession) Mint(_to common.Address, _amount *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_DigiUToken.transactionSession.Lock()
-	tx, err := _DigiUToken.Contract.Mint(_DigiUToken.transactionSession.TransactOpts, _to, _amount)
-	if err != nil {
-		_DigiUToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_DigiUToken.transactionSession.TransactOpts.Nonce.Add(_DigiUToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DigiUToken.transactionSession.Unlock()
-	receipt, err := _DigiUToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// Mint returns raw transaction bound to the contract method 0x40c10f19.
-//
-// Solidity: function mint(address _to, uint256 _amount) returns()
-func (_DigiUToken *DigiUTokenSession) MintRawTx(_to common.Address, _amount *big.Int) (*types.Transaction, error) {
-	tx, err := _DigiUToken.Contract.MintRawTx(_DigiUToken.transactionSession.TransactOpts, _to, _amount)
-	return tx, err
-}
-
-// Mint is a paid mutator transaction binding the contract method 0x40c10f19.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function mint(address _to, uint256 _amount) returns()
-func (_DigiUToken *DigiUTokenSession) MintAsync(receiptCh chan *types.ReceiptResult, _to common.Address, _amount *big.Int) (*types.Transaction, error) {
-	_DigiUToken.transactionSession.Lock()
-	tx, err := _DigiUToken.Contract.Mint(_DigiUToken.transactionSession.TransactOpts, _to, _amount)
-	if err != nil {
-		_DigiUToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_DigiUToken.transactionSession.TransactOpts.Nonce.Add(_DigiUToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DigiUToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _DigiUToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_DigiUToken *DigiUTokenSession) Mint(_to common.Address, _amount *big.Int) (*types.Transaction, error) {
+	return _DigiUToken.Contract.Mint(&_DigiUToken.TransactOpts, _to, _amount)
 }
 
 // Mint is a paid mutator transaction binding the contract method 0x40c10f19.
 //
 // Solidity: function mint(address _to, uint256 _amount) returns()
-func (_DigiUToken *DigiUTokenTransactorSession) Mint(wait bool, _to common.Address, _amount *big.Int) (*types.Transaction, error) {
+func (_DigiUToken *DigiUTokenTransactorSession) Mint(_to common.Address, _amount *big.Int) (*types.Transaction, error) {
 	return _DigiUToken.Contract.Mint(&_DigiUToken.TransactOpts, _to, _amount)
 }
 
@@ -1022,62 +800,17 @@ func (_DigiUToken *DigiUTokenTransactor) RenounceOwnership(opts *bind.TransactOp
 	return _DigiUToken.contract.Transact(opts, "renounceOwnership")
 }
 
-func (_DigiUToken *DigiUTokenTransactor) RenounceOwnershipRawTx(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _DigiUToken.contract.RawTx(opts, "renounceOwnership")
-}
-
 // RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
-// Will wait for tx receipt
 //
 // Solidity: function renounceOwnership() returns()
-func (_DigiUToken *DigiUTokenSession) RenounceOwnership() (*types.Transaction, *types.Receipt, error) {
-	_DigiUToken.transactionSession.Lock()
-	tx, err := _DigiUToken.Contract.RenounceOwnership(_DigiUToken.transactionSession.TransactOpts)
-	if err != nil {
-		_DigiUToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_DigiUToken.transactionSession.TransactOpts.Nonce.Add(_DigiUToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DigiUToken.transactionSession.Unlock()
-	receipt, err := _DigiUToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// RenounceOwnership returns raw transaction bound to the contract method 0x715018a6.
-//
-// Solidity: function renounceOwnership() returns()
-func (_DigiUToken *DigiUTokenSession) RenounceOwnershipRawTx() (*types.Transaction, error) {
-	tx, err := _DigiUToken.Contract.RenounceOwnershipRawTx(_DigiUToken.transactionSession.TransactOpts)
-	return tx, err
-}
-
-// RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function renounceOwnership() returns()
-func (_DigiUToken *DigiUTokenSession) RenounceOwnershipAsync(receiptCh chan *types.ReceiptResult) (*types.Transaction, error) {
-	_DigiUToken.transactionSession.Lock()
-	tx, err := _DigiUToken.Contract.RenounceOwnership(_DigiUToken.transactionSession.TransactOpts)
-	if err != nil {
-		_DigiUToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_DigiUToken.transactionSession.TransactOpts.Nonce.Add(_DigiUToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DigiUToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _DigiUToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_DigiUToken *DigiUTokenSession) RenounceOwnership() (*types.Transaction, error) {
+	return _DigiUToken.Contract.RenounceOwnership(&_DigiUToken.TransactOpts)
 }
 
 // RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
 //
 // Solidity: function renounceOwnership() returns()
-func (_DigiUToken *DigiUTokenTransactorSession) RenounceOwnership(wait bool) (*types.Transaction, error) {
+func (_DigiUToken *DigiUTokenTransactorSession) RenounceOwnership() (*types.Transaction, error) {
 	return _DigiUToken.Contract.RenounceOwnership(&_DigiUToken.TransactOpts)
 }
 
@@ -1088,62 +821,17 @@ func (_DigiUToken *DigiUTokenTransactor) Transfer(opts *bind.TransactOpts, recip
 	return _DigiUToken.contract.Transact(opts, "transfer", recipient, amount)
 }
 
-func (_DigiUToken *DigiUTokenTransactor) TransferRawTx(opts *bind.TransactOpts, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	return _DigiUToken.contract.RawTx(opts, "transfer", recipient, amount)
-}
-
 // Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
-// Will wait for tx receipt
 //
 // Solidity: function transfer(address recipient, uint256 amount) returns(bool)
-func (_DigiUToken *DigiUTokenSession) Transfer(recipient common.Address, amount *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_DigiUToken.transactionSession.Lock()
-	tx, err := _DigiUToken.Contract.Transfer(_DigiUToken.transactionSession.TransactOpts, recipient, amount)
-	if err != nil {
-		_DigiUToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_DigiUToken.transactionSession.TransactOpts.Nonce.Add(_DigiUToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DigiUToken.transactionSession.Unlock()
-	receipt, err := _DigiUToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// Transfer returns raw transaction bound to the contract method 0xa9059cbb.
-//
-// Solidity: function transfer(address recipient, uint256 amount) returns(bool)
-func (_DigiUToken *DigiUTokenSession) TransferRawTx(recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	tx, err := _DigiUToken.Contract.TransferRawTx(_DigiUToken.transactionSession.TransactOpts, recipient, amount)
-	return tx, err
-}
-
-// Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function transfer(address recipient, uint256 amount) returns(bool)
-func (_DigiUToken *DigiUTokenSession) TransferAsync(receiptCh chan *types.ReceiptResult, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	_DigiUToken.transactionSession.Lock()
-	tx, err := _DigiUToken.Contract.Transfer(_DigiUToken.transactionSession.TransactOpts, recipient, amount)
-	if err != nil {
-		_DigiUToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_DigiUToken.transactionSession.TransactOpts.Nonce.Add(_DigiUToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DigiUToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _DigiUToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_DigiUToken *DigiUTokenSession) Transfer(recipient common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _DigiUToken.Contract.Transfer(&_DigiUToken.TransactOpts, recipient, amount)
 }
 
 // Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
 //
 // Solidity: function transfer(address recipient, uint256 amount) returns(bool)
-func (_DigiUToken *DigiUTokenTransactorSession) Transfer(wait bool, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
+func (_DigiUToken *DigiUTokenTransactorSession) Transfer(recipient common.Address, amount *big.Int) (*types.Transaction, error) {
 	return _DigiUToken.Contract.Transfer(&_DigiUToken.TransactOpts, recipient, amount)
 }
 
@@ -1154,62 +842,17 @@ func (_DigiUToken *DigiUTokenTransactor) TransferFrom(opts *bind.TransactOpts, s
 	return _DigiUToken.contract.Transact(opts, "transferFrom", sender, recipient, amount)
 }
 
-func (_DigiUToken *DigiUTokenTransactor) TransferFromRawTx(opts *bind.TransactOpts, sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	return _DigiUToken.contract.RawTx(opts, "transferFrom", sender, recipient, amount)
-}
-
 // TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
-// Will wait for tx receipt
 //
 // Solidity: function transferFrom(address sender, address recipient, uint256 amount) returns(bool)
-func (_DigiUToken *DigiUTokenSession) TransferFrom(sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_DigiUToken.transactionSession.Lock()
-	tx, err := _DigiUToken.Contract.TransferFrom(_DigiUToken.transactionSession.TransactOpts, sender, recipient, amount)
-	if err != nil {
-		_DigiUToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_DigiUToken.transactionSession.TransactOpts.Nonce.Add(_DigiUToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DigiUToken.transactionSession.Unlock()
-	receipt, err := _DigiUToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// TransferFrom returns raw transaction bound to the contract method 0x23b872dd.
-//
-// Solidity: function transferFrom(address sender, address recipient, uint256 amount) returns(bool)
-func (_DigiUToken *DigiUTokenSession) TransferFromRawTx(sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	tx, err := _DigiUToken.Contract.TransferFromRawTx(_DigiUToken.transactionSession.TransactOpts, sender, recipient, amount)
-	return tx, err
-}
-
-// TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function transferFrom(address sender, address recipient, uint256 amount) returns(bool)
-func (_DigiUToken *DigiUTokenSession) TransferFromAsync(receiptCh chan *types.ReceiptResult, sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	_DigiUToken.transactionSession.Lock()
-	tx, err := _DigiUToken.Contract.TransferFrom(_DigiUToken.transactionSession.TransactOpts, sender, recipient, amount)
-	if err != nil {
-		_DigiUToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_DigiUToken.transactionSession.TransactOpts.Nonce.Add(_DigiUToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DigiUToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _DigiUToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_DigiUToken *DigiUTokenSession) TransferFrom(sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _DigiUToken.Contract.TransferFrom(&_DigiUToken.TransactOpts, sender, recipient, amount)
 }
 
 // TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
 //
 // Solidity: function transferFrom(address sender, address recipient, uint256 amount) returns(bool)
-func (_DigiUToken *DigiUTokenTransactorSession) TransferFrom(wait bool, sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
+func (_DigiUToken *DigiUTokenTransactorSession) TransferFrom(sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
 	return _DigiUToken.Contract.TransferFrom(&_DigiUToken.TransactOpts, sender, recipient, amount)
 }
 
@@ -1220,62 +863,17 @@ func (_DigiUToken *DigiUTokenTransactor) TransferOwnership(opts *bind.TransactOp
 	return _DigiUToken.contract.Transact(opts, "transferOwnership", newOwner)
 }
 
-func (_DigiUToken *DigiUTokenTransactor) TransferOwnershipRawTx(opts *bind.TransactOpts, newOwner common.Address) (*types.Transaction, error) {
-	return _DigiUToken.contract.RawTx(opts, "transferOwnership", newOwner)
-}
-
 // TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
-// Will wait for tx receipt
 //
 // Solidity: function transferOwnership(address newOwner) returns()
-func (_DigiUToken *DigiUTokenSession) TransferOwnership(newOwner common.Address) (*types.Transaction, *types.Receipt, error) {
-	_DigiUToken.transactionSession.Lock()
-	tx, err := _DigiUToken.Contract.TransferOwnership(_DigiUToken.transactionSession.TransactOpts, newOwner)
-	if err != nil {
-		_DigiUToken.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_DigiUToken.transactionSession.TransactOpts.Nonce.Add(_DigiUToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DigiUToken.transactionSession.Unlock()
-	receipt, err := _DigiUToken.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// TransferOwnership returns raw transaction bound to the contract method 0xf2fde38b.
-//
-// Solidity: function transferOwnership(address newOwner) returns()
-func (_DigiUToken *DigiUTokenSession) TransferOwnershipRawTx(newOwner common.Address) (*types.Transaction, error) {
-	tx, err := _DigiUToken.Contract.TransferOwnershipRawTx(_DigiUToken.transactionSession.TransactOpts, newOwner)
-	return tx, err
-}
-
-// TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function transferOwnership(address newOwner) returns()
-func (_DigiUToken *DigiUTokenSession) TransferOwnershipAsync(receiptCh chan *types.ReceiptResult, newOwner common.Address) (*types.Transaction, error) {
-	_DigiUToken.transactionSession.Lock()
-	tx, err := _DigiUToken.Contract.TransferOwnership(_DigiUToken.transactionSession.TransactOpts, newOwner)
-	if err != nil {
-		_DigiUToken.transactionSession.Unlock()
-		return nil, err
-	}
-	_DigiUToken.transactionSession.TransactOpts.Nonce.Add(_DigiUToken.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_DigiUToken.transactionSession.Unlock()
-	go func() {
-		receipt, err := _DigiUToken.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_DigiUToken *DigiUTokenSession) TransferOwnership(newOwner common.Address) (*types.Transaction, error) {
+	return _DigiUToken.Contract.TransferOwnership(&_DigiUToken.TransactOpts, newOwner)
 }
 
 // TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
 //
 // Solidity: function transferOwnership(address newOwner) returns()
-func (_DigiUToken *DigiUTokenTransactorSession) TransferOwnership(wait bool, newOwner common.Address) (*types.Transaction, error) {
+func (_DigiUToken *DigiUTokenTransactorSession) TransferOwnership(newOwner common.Address) (*types.Transaction, error) {
 	return _DigiUToken.Contract.TransferOwnership(&_DigiUToken.TransactOpts, newOwner)
 }
 
@@ -1429,6 +1027,7 @@ func (_DigiUToken *DigiUTokenFilterer) ParseApproval(log types.Log) (*DigiUToken
 	if err := _DigiUToken.contract.UnpackLog(event, "Approval", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -1590,6 +1189,7 @@ func (_DigiUToken *DigiUTokenFilterer) ParseDelegateChanged(log types.Log) (*Dig
 	if err := _DigiUToken.contract.UnpackLog(event, "DelegateChanged", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -1735,6 +1335,7 @@ func (_DigiUToken *DigiUTokenFilterer) ParseDelegateVotesChanged(log types.Log) 
 	if err := _DigiUToken.contract.UnpackLog(event, "DelegateVotesChanged", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -1887,6 +1488,7 @@ func (_DigiUToken *DigiUTokenFilterer) ParseOwnershipTransferred(log types.Log) 
 	if err := _DigiUToken.contract.UnpackLog(event, "OwnershipTransferred", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -2040,5 +1642,6 @@ func (_DigiUToken *DigiUTokenFilterer) ParseTransfer(log types.Log) (*DigiUToken
 	if err := _DigiUToken.contract.UnpackLog(event, "Transfer", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
