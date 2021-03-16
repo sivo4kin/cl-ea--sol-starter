@@ -4,14 +4,14 @@
 package bindings
 
 import (
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strings"
-	//"github.com/sivo4kin/digiu-cross-chain/bind"
+
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -46,25 +46,6 @@ func DeployCBORChainlink(auth *bind.TransactOpts, backend bind.ContractBackend) 
 	return address, tx, &CBORChainlink{CBORChainlinkCaller: CBORChainlinkCaller{contract: contract}, CBORChainlinkTransactor: CBORChainlinkTransactor{contract: contract}, CBORChainlinkFilterer: CBORChainlinkFilterer{contract: contract}}, nil
 }
 
-// DeployCBORChainlinkSync deploys a new Ethereum contract and waits for receipt, binding an instance of CBORChainlinkSession to it.
-func DeployCBORChainlinkSync(session *bind.TransactSession, backend bind.ContractBackend) (*types.Transaction, *types.Receipt, *CBORChainlinkSession, error) {
-	parsed, err := abi.JSON(strings.NewReader(CBORChainlinkABI))
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	session.Lock()
-	address, tx, _, err := bind.DeployContract(session.TransactOpts, parsed, common.FromHex(CBORChainlinkBin), backend)
-	receipt, err := session.WaitTransaction(tx)
-	if err != nil {
-		session.Unlock()
-		return nil, nil, nil, err
-	}
-	session.TransactOpts.Nonce.Add(session.TransactOpts.Nonce, big.NewInt(1))
-	session.Unlock()
-	contractSession, err := NewCBORChainlinkSession(address, backend, session)
-	return tx, receipt, contractSession, err
-}
-
 // CBORChainlink is an auto generated Go binding around an Ethereum contract.
 type CBORChainlink struct {
 	CBORChainlinkCaller     // Read-only binding to the contract
@@ -90,9 +71,9 @@ type CBORChainlinkFilterer struct {
 // CBORChainlinkSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type CBORChainlinkSession struct {
-	Contract           *CBORChainlink // Generic contract binding to set the session for
-	transactionSession *bind.TransactSession
-	Address            common.Address
+	Contract     *CBORChainlink    // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
 // CBORChainlinkCallerSession is an auto generated read-only Go binding around an Ethereum contract,
@@ -160,18 +141,6 @@ func NewCBORChainlinkFilterer(address common.Address, filterer bind.ContractFilt
 	return &CBORChainlinkFilterer{contract: contract}, nil
 }
 
-func NewCBORChainlinkSession(address common.Address, backend bind.ContractBackend, transactionSession *bind.TransactSession) (*CBORChainlinkSession, error) {
-	CBORChainlinkInstance, err := NewCBORChainlink(address, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &CBORChainlinkSession{
-		Contract:           CBORChainlinkInstance,
-		transactionSession: transactionSession,
-		Address:            address,
-	}, nil
-}
-
 // bindCBORChainlink binds a generic wrapper to an already deployed contract.
 func bindCBORChainlink(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(CBORChainlinkABI))
@@ -185,7 +154,7 @@ func bindCBORChainlink(address common.Address, caller bind.ContractCaller, trans
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_CBORChainlink *CBORChainlinkRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_CBORChainlink *CBORChainlinkRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _CBORChainlink.Contract.CBORChainlinkCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -204,7 +173,7 @@ func (_CBORChainlink *CBORChainlinkRaw) Transact(opts *bind.TransactOpts, method
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_CBORChainlink *CBORChainlinkCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_CBORChainlink *CBORChainlinkCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _CBORChainlink.Contract.contract.Call(opts, result, method, params...)
 }
 

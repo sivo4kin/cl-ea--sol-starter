@@ -4,14 +4,14 @@
 package bindings
 
 import (
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strings"
-	//"github.com/sivo4kin/digiu-cross-chain/bind"
+
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -46,25 +46,6 @@ func DeployBufferChainlink(auth *bind.TransactOpts, backend bind.ContractBackend
 	return address, tx, &BufferChainlink{BufferChainlinkCaller: BufferChainlinkCaller{contract: contract}, BufferChainlinkTransactor: BufferChainlinkTransactor{contract: contract}, BufferChainlinkFilterer: BufferChainlinkFilterer{contract: contract}}, nil
 }
 
-// DeployBufferChainlinkSync deploys a new Ethereum contract and waits for receipt, binding an instance of BufferChainlinkSession to it.
-func DeployBufferChainlinkSync(session *bind.TransactSession, backend bind.ContractBackend) (*types.Transaction, *types.Receipt, *BufferChainlinkSession, error) {
-	parsed, err := abi.JSON(strings.NewReader(BufferChainlinkABI))
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	session.Lock()
-	address, tx, _, err := bind.DeployContract(session.TransactOpts, parsed, common.FromHex(BufferChainlinkBin), backend)
-	receipt, err := session.WaitTransaction(tx)
-	if err != nil {
-		session.Unlock()
-		return nil, nil, nil, err
-	}
-	session.TransactOpts.Nonce.Add(session.TransactOpts.Nonce, big.NewInt(1))
-	session.Unlock()
-	contractSession, err := NewBufferChainlinkSession(address, backend, session)
-	return tx, receipt, contractSession, err
-}
-
 // BufferChainlink is an auto generated Go binding around an Ethereum contract.
 type BufferChainlink struct {
 	BufferChainlinkCaller     // Read-only binding to the contract
@@ -90,9 +71,9 @@ type BufferChainlinkFilterer struct {
 // BufferChainlinkSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type BufferChainlinkSession struct {
-	Contract           *BufferChainlink // Generic contract binding to set the session for
-	transactionSession *bind.TransactSession
-	Address            common.Address
+	Contract     *BufferChainlink  // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
 // BufferChainlinkCallerSession is an auto generated read-only Go binding around an Ethereum contract,
@@ -160,18 +141,6 @@ func NewBufferChainlinkFilterer(address common.Address, filterer bind.ContractFi
 	return &BufferChainlinkFilterer{contract: contract}, nil
 }
 
-func NewBufferChainlinkSession(address common.Address, backend bind.ContractBackend, transactionSession *bind.TransactSession) (*BufferChainlinkSession, error) {
-	BufferChainlinkInstance, err := NewBufferChainlink(address, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &BufferChainlinkSession{
-		Contract:           BufferChainlinkInstance,
-		transactionSession: transactionSession,
-		Address:            address,
-	}, nil
-}
-
 // bindBufferChainlink binds a generic wrapper to an already deployed contract.
 func bindBufferChainlink(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(BufferChainlinkABI))
@@ -185,7 +154,7 @@ func bindBufferChainlink(address common.Address, caller bind.ContractCaller, tra
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_BufferChainlink *BufferChainlinkRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_BufferChainlink *BufferChainlinkRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _BufferChainlink.Contract.BufferChainlinkCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -204,7 +173,7 @@ func (_BufferChainlink *BufferChainlinkRaw) Transact(opts *bind.TransactOpts, me
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_BufferChainlink *BufferChainlinkCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_BufferChainlink *BufferChainlinkCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _BufferChainlink.Contract.contract.Call(opts, result, method, params...)
 }
 

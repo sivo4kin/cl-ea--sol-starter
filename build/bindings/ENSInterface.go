@@ -4,14 +4,14 @@
 package bindings
 
 import (
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strings"
-	//"github.com/sivo4kin/digiu-cross-chain/bind"
+
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -54,9 +54,9 @@ type ENSInterfaceFilterer struct {
 // ENSInterfaceSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type ENSInterfaceSession struct {
-	Contract           *ENSInterface // Generic contract binding to set the session for
-	transactionSession *bind.TransactSession
-	Address            common.Address
+	Contract     *ENSInterface     // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
 // ENSInterfaceCallerSession is an auto generated read-only Go binding around an Ethereum contract,
@@ -124,18 +124,6 @@ func NewENSInterfaceFilterer(address common.Address, filterer bind.ContractFilte
 	return &ENSInterfaceFilterer{contract: contract}, nil
 }
 
-func NewENSInterfaceSession(address common.Address, backend bind.ContractBackend, transactionSession *bind.TransactSession) (*ENSInterfaceSession, error) {
-	ENSInterfaceInstance, err := NewENSInterface(address, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &ENSInterfaceSession{
-		Contract:           ENSInterfaceInstance,
-		transactionSession: transactionSession,
-		Address:            address,
-	}, nil
-}
-
 // bindENSInterface binds a generic wrapper to an already deployed contract.
 func bindENSInterface(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(ENSInterfaceABI))
@@ -149,7 +137,7 @@ func bindENSInterface(address common.Address, caller bind.ContractCaller, transa
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_ENSInterface *ENSInterfaceRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_ENSInterface *ENSInterfaceRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _ENSInterface.Contract.ENSInterfaceCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -168,7 +156,7 @@ func (_ENSInterface *ENSInterfaceRaw) Transact(opts *bind.TransactOpts, method s
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_ENSInterface *ENSInterfaceCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_ENSInterface *ENSInterfaceCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _ENSInterface.Contract.contract.Call(opts, result, method, params...)
 }
 
@@ -187,19 +175,24 @@ func (_ENSInterface *ENSInterfaceTransactorRaw) Transact(opts *bind.TransactOpts
 //
 // Solidity: function owner(bytes32 node) view returns(address)
 func (_ENSInterface *ENSInterfaceCaller) Owner(opts *bind.CallOpts, node [32]byte) (common.Address, error) {
-	var (
-		ret0 = new(common.Address)
-	)
-	out := ret0
-	err := _ENSInterface.contract.Call(opts, out, "owner", node)
-	return *ret0, err
+	var out []interface{}
+	err := _ENSInterface.contract.Call(opts, &out, "owner", node)
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
 }
 
 // Owner is a free data retrieval call binding the contract method 0x02571be3.
 //
 // Solidity: function owner(bytes32 node) view returns(address)
 func (_ENSInterface *ENSInterfaceSession) Owner(node [32]byte) (common.Address, error) {
-	return _ENSInterface.Contract.Owner(_ENSInterface.transactionSession.CallOpts, node)
+	return _ENSInterface.Contract.Owner(&_ENSInterface.CallOpts, node)
 }
 
 // Owner is a free data retrieval call binding the contract method 0x02571be3.
@@ -213,19 +206,24 @@ func (_ENSInterface *ENSInterfaceCallerSession) Owner(node [32]byte) (common.Add
 //
 // Solidity: function resolver(bytes32 node) view returns(address)
 func (_ENSInterface *ENSInterfaceCaller) Resolver(opts *bind.CallOpts, node [32]byte) (common.Address, error) {
-	var (
-		ret0 = new(common.Address)
-	)
-	out := ret0
-	err := _ENSInterface.contract.Call(opts, out, "resolver", node)
-	return *ret0, err
+	var out []interface{}
+	err := _ENSInterface.contract.Call(opts, &out, "resolver", node)
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
 }
 
 // Resolver is a free data retrieval call binding the contract method 0x0178b8bf.
 //
 // Solidity: function resolver(bytes32 node) view returns(address)
 func (_ENSInterface *ENSInterfaceSession) Resolver(node [32]byte) (common.Address, error) {
-	return _ENSInterface.Contract.Resolver(_ENSInterface.transactionSession.CallOpts, node)
+	return _ENSInterface.Contract.Resolver(&_ENSInterface.CallOpts, node)
 }
 
 // Resolver is a free data retrieval call binding the contract method 0x0178b8bf.
@@ -239,19 +237,24 @@ func (_ENSInterface *ENSInterfaceCallerSession) Resolver(node [32]byte) (common.
 //
 // Solidity: function ttl(bytes32 node) view returns(uint64)
 func (_ENSInterface *ENSInterfaceCaller) Ttl(opts *bind.CallOpts, node [32]byte) (uint64, error) {
-	var (
-		ret0 = new(uint64)
-	)
-	out := ret0
-	err := _ENSInterface.contract.Call(opts, out, "ttl", node)
-	return *ret0, err
+	var out []interface{}
+	err := _ENSInterface.contract.Call(opts, &out, "ttl", node)
+
+	if err != nil {
+		return *new(uint64), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint64)).(*uint64)
+
+	return out0, err
+
 }
 
 // Ttl is a free data retrieval call binding the contract method 0x16a25cbd.
 //
 // Solidity: function ttl(bytes32 node) view returns(uint64)
 func (_ENSInterface *ENSInterfaceSession) Ttl(node [32]byte) (uint64, error) {
-	return _ENSInterface.Contract.Ttl(_ENSInterface.transactionSession.CallOpts, node)
+	return _ENSInterface.Contract.Ttl(&_ENSInterface.CallOpts, node)
 }
 
 // Ttl is a free data retrieval call binding the contract method 0x16a25cbd.
@@ -268,62 +271,17 @@ func (_ENSInterface *ENSInterfaceTransactor) SetOwner(opts *bind.TransactOpts, n
 	return _ENSInterface.contract.Transact(opts, "setOwner", node, _owner)
 }
 
-func (_ENSInterface *ENSInterfaceTransactor) SetOwnerRawTx(opts *bind.TransactOpts, node [32]byte, _owner common.Address) (*types.Transaction, error) {
-	return _ENSInterface.contract.RawTx(opts, "setOwner", node, _owner)
-}
-
 // SetOwner is a paid mutator transaction binding the contract method 0x5b0fc9c3.
-// Will wait for tx receipt
 //
 // Solidity: function setOwner(bytes32 node, address _owner) returns()
-func (_ENSInterface *ENSInterfaceSession) SetOwner(node [32]byte, _owner common.Address) (*types.Transaction, *types.Receipt, error) {
-	_ENSInterface.transactionSession.Lock()
-	tx, err := _ENSInterface.Contract.SetOwner(_ENSInterface.transactionSession.TransactOpts, node, _owner)
-	if err != nil {
-		_ENSInterface.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_ENSInterface.transactionSession.TransactOpts.Nonce.Add(_ENSInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_ENSInterface.transactionSession.Unlock()
-	receipt, err := _ENSInterface.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// SetOwner returns raw transaction bound to the contract method 0x5b0fc9c3.
-//
-// Solidity: function setOwner(bytes32 node, address _owner) returns()
-func (_ENSInterface *ENSInterfaceSession) SetOwnerRawTx(node [32]byte, _owner common.Address) (*types.Transaction, error) {
-	tx, err := _ENSInterface.Contract.SetOwnerRawTx(_ENSInterface.transactionSession.TransactOpts, node, _owner)
-	return tx, err
-}
-
-// SetOwner is a paid mutator transaction binding the contract method 0x5b0fc9c3.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function setOwner(bytes32 node, address _owner) returns()
-func (_ENSInterface *ENSInterfaceSession) SetOwnerAsync(receiptCh chan *types.ReceiptResult, node [32]byte, _owner common.Address) (*types.Transaction, error) {
-	_ENSInterface.transactionSession.Lock()
-	tx, err := _ENSInterface.Contract.SetOwner(_ENSInterface.transactionSession.TransactOpts, node, _owner)
-	if err != nil {
-		_ENSInterface.transactionSession.Unlock()
-		return nil, err
-	}
-	_ENSInterface.transactionSession.TransactOpts.Nonce.Add(_ENSInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_ENSInterface.transactionSession.Unlock()
-	go func() {
-		receipt, err := _ENSInterface.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_ENSInterface *ENSInterfaceSession) SetOwner(node [32]byte, _owner common.Address) (*types.Transaction, error) {
+	return _ENSInterface.Contract.SetOwner(&_ENSInterface.TransactOpts, node, _owner)
 }
 
 // SetOwner is a paid mutator transaction binding the contract method 0x5b0fc9c3.
 //
 // Solidity: function setOwner(bytes32 node, address _owner) returns()
-func (_ENSInterface *ENSInterfaceTransactorSession) SetOwner(wait bool, node [32]byte, _owner common.Address) (*types.Transaction, error) {
+func (_ENSInterface *ENSInterfaceTransactorSession) SetOwner(node [32]byte, _owner common.Address) (*types.Transaction, error) {
 	return _ENSInterface.Contract.SetOwner(&_ENSInterface.TransactOpts, node, _owner)
 }
 
@@ -334,62 +292,17 @@ func (_ENSInterface *ENSInterfaceTransactor) SetResolver(opts *bind.TransactOpts
 	return _ENSInterface.contract.Transact(opts, "setResolver", node, _resolver)
 }
 
-func (_ENSInterface *ENSInterfaceTransactor) SetResolverRawTx(opts *bind.TransactOpts, node [32]byte, _resolver common.Address) (*types.Transaction, error) {
-	return _ENSInterface.contract.RawTx(opts, "setResolver", node, _resolver)
-}
-
 // SetResolver is a paid mutator transaction binding the contract method 0x1896f70a.
-// Will wait for tx receipt
 //
 // Solidity: function setResolver(bytes32 node, address _resolver) returns()
-func (_ENSInterface *ENSInterfaceSession) SetResolver(node [32]byte, _resolver common.Address) (*types.Transaction, *types.Receipt, error) {
-	_ENSInterface.transactionSession.Lock()
-	tx, err := _ENSInterface.Contract.SetResolver(_ENSInterface.transactionSession.TransactOpts, node, _resolver)
-	if err != nil {
-		_ENSInterface.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_ENSInterface.transactionSession.TransactOpts.Nonce.Add(_ENSInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_ENSInterface.transactionSession.Unlock()
-	receipt, err := _ENSInterface.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// SetResolver returns raw transaction bound to the contract method 0x1896f70a.
-//
-// Solidity: function setResolver(bytes32 node, address _resolver) returns()
-func (_ENSInterface *ENSInterfaceSession) SetResolverRawTx(node [32]byte, _resolver common.Address) (*types.Transaction, error) {
-	tx, err := _ENSInterface.Contract.SetResolverRawTx(_ENSInterface.transactionSession.TransactOpts, node, _resolver)
-	return tx, err
-}
-
-// SetResolver is a paid mutator transaction binding the contract method 0x1896f70a.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function setResolver(bytes32 node, address _resolver) returns()
-func (_ENSInterface *ENSInterfaceSession) SetResolverAsync(receiptCh chan *types.ReceiptResult, node [32]byte, _resolver common.Address) (*types.Transaction, error) {
-	_ENSInterface.transactionSession.Lock()
-	tx, err := _ENSInterface.Contract.SetResolver(_ENSInterface.transactionSession.TransactOpts, node, _resolver)
-	if err != nil {
-		_ENSInterface.transactionSession.Unlock()
-		return nil, err
-	}
-	_ENSInterface.transactionSession.TransactOpts.Nonce.Add(_ENSInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_ENSInterface.transactionSession.Unlock()
-	go func() {
-		receipt, err := _ENSInterface.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_ENSInterface *ENSInterfaceSession) SetResolver(node [32]byte, _resolver common.Address) (*types.Transaction, error) {
+	return _ENSInterface.Contract.SetResolver(&_ENSInterface.TransactOpts, node, _resolver)
 }
 
 // SetResolver is a paid mutator transaction binding the contract method 0x1896f70a.
 //
 // Solidity: function setResolver(bytes32 node, address _resolver) returns()
-func (_ENSInterface *ENSInterfaceTransactorSession) SetResolver(wait bool, node [32]byte, _resolver common.Address) (*types.Transaction, error) {
+func (_ENSInterface *ENSInterfaceTransactorSession) SetResolver(node [32]byte, _resolver common.Address) (*types.Transaction, error) {
 	return _ENSInterface.Contract.SetResolver(&_ENSInterface.TransactOpts, node, _resolver)
 }
 
@@ -400,62 +313,17 @@ func (_ENSInterface *ENSInterfaceTransactor) SetSubnodeOwner(opts *bind.Transact
 	return _ENSInterface.contract.Transact(opts, "setSubnodeOwner", node, label, _owner)
 }
 
-func (_ENSInterface *ENSInterfaceTransactor) SetSubnodeOwnerRawTx(opts *bind.TransactOpts, node [32]byte, label [32]byte, _owner common.Address) (*types.Transaction, error) {
-	return _ENSInterface.contract.RawTx(opts, "setSubnodeOwner", node, label, _owner)
-}
-
 // SetSubnodeOwner is a paid mutator transaction binding the contract method 0x06ab5923.
-// Will wait for tx receipt
 //
 // Solidity: function setSubnodeOwner(bytes32 node, bytes32 label, address _owner) returns()
-func (_ENSInterface *ENSInterfaceSession) SetSubnodeOwner(node [32]byte, label [32]byte, _owner common.Address) (*types.Transaction, *types.Receipt, error) {
-	_ENSInterface.transactionSession.Lock()
-	tx, err := _ENSInterface.Contract.SetSubnodeOwner(_ENSInterface.transactionSession.TransactOpts, node, label, _owner)
-	if err != nil {
-		_ENSInterface.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_ENSInterface.transactionSession.TransactOpts.Nonce.Add(_ENSInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_ENSInterface.transactionSession.Unlock()
-	receipt, err := _ENSInterface.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// SetSubnodeOwner returns raw transaction bound to the contract method 0x06ab5923.
-//
-// Solidity: function setSubnodeOwner(bytes32 node, bytes32 label, address _owner) returns()
-func (_ENSInterface *ENSInterfaceSession) SetSubnodeOwnerRawTx(node [32]byte, label [32]byte, _owner common.Address) (*types.Transaction, error) {
-	tx, err := _ENSInterface.Contract.SetSubnodeOwnerRawTx(_ENSInterface.transactionSession.TransactOpts, node, label, _owner)
-	return tx, err
-}
-
-// SetSubnodeOwner is a paid mutator transaction binding the contract method 0x06ab5923.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function setSubnodeOwner(bytes32 node, bytes32 label, address _owner) returns()
-func (_ENSInterface *ENSInterfaceSession) SetSubnodeOwnerAsync(receiptCh chan *types.ReceiptResult, node [32]byte, label [32]byte, _owner common.Address) (*types.Transaction, error) {
-	_ENSInterface.transactionSession.Lock()
-	tx, err := _ENSInterface.Contract.SetSubnodeOwner(_ENSInterface.transactionSession.TransactOpts, node, label, _owner)
-	if err != nil {
-		_ENSInterface.transactionSession.Unlock()
-		return nil, err
-	}
-	_ENSInterface.transactionSession.TransactOpts.Nonce.Add(_ENSInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_ENSInterface.transactionSession.Unlock()
-	go func() {
-		receipt, err := _ENSInterface.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_ENSInterface *ENSInterfaceSession) SetSubnodeOwner(node [32]byte, label [32]byte, _owner common.Address) (*types.Transaction, error) {
+	return _ENSInterface.Contract.SetSubnodeOwner(&_ENSInterface.TransactOpts, node, label, _owner)
 }
 
 // SetSubnodeOwner is a paid mutator transaction binding the contract method 0x06ab5923.
 //
 // Solidity: function setSubnodeOwner(bytes32 node, bytes32 label, address _owner) returns()
-func (_ENSInterface *ENSInterfaceTransactorSession) SetSubnodeOwner(wait bool, node [32]byte, label [32]byte, _owner common.Address) (*types.Transaction, error) {
+func (_ENSInterface *ENSInterfaceTransactorSession) SetSubnodeOwner(node [32]byte, label [32]byte, _owner common.Address) (*types.Transaction, error) {
 	return _ENSInterface.Contract.SetSubnodeOwner(&_ENSInterface.TransactOpts, node, label, _owner)
 }
 
@@ -466,62 +334,17 @@ func (_ENSInterface *ENSInterfaceTransactor) SetTTL(opts *bind.TransactOpts, nod
 	return _ENSInterface.contract.Transact(opts, "setTTL", node, _ttl)
 }
 
-func (_ENSInterface *ENSInterfaceTransactor) SetTTLRawTx(opts *bind.TransactOpts, node [32]byte, _ttl uint64) (*types.Transaction, error) {
-	return _ENSInterface.contract.RawTx(opts, "setTTL", node, _ttl)
-}
-
 // SetTTL is a paid mutator transaction binding the contract method 0x14ab9038.
-// Will wait for tx receipt
 //
 // Solidity: function setTTL(bytes32 node, uint64 _ttl) returns()
-func (_ENSInterface *ENSInterfaceSession) SetTTL(node [32]byte, _ttl uint64) (*types.Transaction, *types.Receipt, error) {
-	_ENSInterface.transactionSession.Lock()
-	tx, err := _ENSInterface.Contract.SetTTL(_ENSInterface.transactionSession.TransactOpts, node, _ttl)
-	if err != nil {
-		_ENSInterface.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_ENSInterface.transactionSession.TransactOpts.Nonce.Add(_ENSInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_ENSInterface.transactionSession.Unlock()
-	receipt, err := _ENSInterface.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// SetTTL returns raw transaction bound to the contract method 0x14ab9038.
-//
-// Solidity: function setTTL(bytes32 node, uint64 _ttl) returns()
-func (_ENSInterface *ENSInterfaceSession) SetTTLRawTx(node [32]byte, _ttl uint64) (*types.Transaction, error) {
-	tx, err := _ENSInterface.Contract.SetTTLRawTx(_ENSInterface.transactionSession.TransactOpts, node, _ttl)
-	return tx, err
-}
-
-// SetTTL is a paid mutator transaction binding the contract method 0x14ab9038.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function setTTL(bytes32 node, uint64 _ttl) returns()
-func (_ENSInterface *ENSInterfaceSession) SetTTLAsync(receiptCh chan *types.ReceiptResult, node [32]byte, _ttl uint64) (*types.Transaction, error) {
-	_ENSInterface.transactionSession.Lock()
-	tx, err := _ENSInterface.Contract.SetTTL(_ENSInterface.transactionSession.TransactOpts, node, _ttl)
-	if err != nil {
-		_ENSInterface.transactionSession.Unlock()
-		return nil, err
-	}
-	_ENSInterface.transactionSession.TransactOpts.Nonce.Add(_ENSInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_ENSInterface.transactionSession.Unlock()
-	go func() {
-		receipt, err := _ENSInterface.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_ENSInterface *ENSInterfaceSession) SetTTL(node [32]byte, _ttl uint64) (*types.Transaction, error) {
+	return _ENSInterface.Contract.SetTTL(&_ENSInterface.TransactOpts, node, _ttl)
 }
 
 // SetTTL is a paid mutator transaction binding the contract method 0x14ab9038.
 //
 // Solidity: function setTTL(bytes32 node, uint64 _ttl) returns()
-func (_ENSInterface *ENSInterfaceTransactorSession) SetTTL(wait bool, node [32]byte, _ttl uint64) (*types.Transaction, error) {
+func (_ENSInterface *ENSInterfaceTransactorSession) SetTTL(node [32]byte, _ttl uint64) (*types.Transaction, error) {
 	return _ENSInterface.Contract.SetTTL(&_ENSInterface.TransactOpts, node, _ttl)
 }
 
@@ -675,6 +498,7 @@ func (_ENSInterface *ENSInterfaceFilterer) ParseNewOwner(log types.Log) (*ENSInt
 	if err := _ENSInterface.contract.UnpackLog(event, "NewOwner", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -819,6 +643,7 @@ func (_ENSInterface *ENSInterfaceFilterer) ParseNewResolver(log types.Log) (*ENS
 	if err := _ENSInterface.contract.UnpackLog(event, "NewResolver", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -963,6 +788,7 @@ func (_ENSInterface *ENSInterfaceFilterer) ParseNewTTL(log types.Log) (*ENSInter
 	if err := _ENSInterface.contract.UnpackLog(event, "NewTTL", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -1107,5 +933,6 @@ func (_ENSInterface *ENSInterfaceFilterer) ParseTransfer(log types.Log) (*ENSInt
 	if err := _ENSInterface.contract.UnpackLog(event, "Transfer", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }

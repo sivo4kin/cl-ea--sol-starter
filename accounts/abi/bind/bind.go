@@ -1,3 +1,19 @@
+// Copyright 2016 The go-ethereum Authors
+// This file is part of the go-ethereum library.
+//
+// The go-ethereum library is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// The go-ethereum library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+
 // Package bind generates Ethereum contract Go bindings.
 //
 // Detailed usage document and tutorial available on the go-ethereum Wiki page:
@@ -36,7 +52,7 @@ func Bind(types []string, abis []string, bytecodes []string, fsigs []map[string]
 		// contracts is the map of each individual contract requested binding
 		contracts = make(map[string]*tmplContract)
 
-		// structs is the map of all reclared structs shared by passed contracts.
+		// structs is the map of all redeclared structs shared by passed contracts.
 		structs = make(map[string]*tmplStruct)
 
 		// isLib is the map used to flag each encountered library as such
@@ -64,10 +80,10 @@ func Bind(types []string, abis []string, bytecodes []string, fsigs []map[string]
 			fallback  *tmplMethod
 			receive   *tmplMethod
 
-			// identifiers are used to detect duplicated identifier of function
-			// and event. For all calls, transacts and events, abigen will generate
+			// identifiers are used to detect duplicated identifiers of functions
+			// and events. For all calls, transacts and events, abigen will generate
 			// corresponding bindings. However we have to ensure there is no
-			// identifier coliision in the bindings of these categories.
+			// identifier collisions in the bindings of these categories.
 			callIdentifiers     = make(map[string]bool)
 			transactIdentifiers = make(map[string]bool)
 			eventIdentifiers    = make(map[string]bool)
@@ -82,7 +98,7 @@ func Bind(types []string, abis []string, bytecodes []string, fsigs []map[string]
 				identifiers = transactIdentifiers
 			}
 			if identifiers[normalizedName] {
-				fmt.Printf("duplicated identifier \"%s\"(normalized \"%s\"), use --alias for renaming", original.Name, normalizedName)
+				return "", fmt.Errorf("duplicated identifier \"%s\"(normalized \"%s\"), use --alias for renaming", original.Name, normalizedName)
 			}
 			identifiers[normalizedName] = true
 			normalized.Name = normalizedName
@@ -232,7 +248,7 @@ var bindType = map[Lang]func(kind abi.Type, structs map[string]*tmplStruct) stri
 	LangJava: bindTypeJava,
 }
 
-// bindBasicTypeGo converts basic solidity types(except array, slice and tuple) to Go one.
+// bindBasicTypeGo converts basic solidity types(except array, slice and tuple) to Go ones.
 func bindBasicTypeGo(kind abi.Type) string {
 	switch kind.T {
 	case abi.AddressTy:
@@ -272,7 +288,7 @@ func bindTypeGo(kind abi.Type, structs map[string]*tmplStruct) string {
 	}
 }
 
-// bindBasicTypeJava converts basic solidity types(except array, slice and tuple) to Java one.
+// bindBasicTypeJava converts basic solidity types(except array, slice and tuple) to Java ones.
 func bindBasicTypeJava(kind abi.Type) string {
 	switch kind.T {
 	case abi.AddressTy:
@@ -316,7 +332,7 @@ func bindBasicTypeJava(kind abi.Type) string {
 }
 
 // pluralizeJavaType explicitly converts multidimensional types to predefined
-// type in go side.
+// types in go side.
 func pluralizeJavaType(typ string) string {
 	switch typ {
 	case "boolean":
@@ -355,7 +371,7 @@ var bindTopicType = map[Lang]func(kind abi.Type, structs map[string]*tmplStruct)
 }
 
 // bindTopicTypeGo converts a Solidity topic type to a Go one. It is almost the same
-// funcionality as for simple types, but dynamic types get converted to hashes.
+// functionality as for simple types, but dynamic types get converted to hashes.
 func bindTopicTypeGo(kind abi.Type, structs map[string]*tmplStruct) string {
 	bound := bindTypeGo(kind, structs)
 
@@ -372,7 +388,7 @@ func bindTopicTypeGo(kind abi.Type, structs map[string]*tmplStruct) string {
 }
 
 // bindTopicTypeJava converts a Solidity topic type to a Java one. It is almost the same
-// funcionality as for simple types, but dynamic types get converted to hashes.
+// functionality as for simple types, but dynamic types get converted to hashes.
 func bindTopicTypeJava(kind abi.Type, structs map[string]*tmplStruct) string {
 	bound := bindTypeJava(kind, structs)
 
@@ -380,7 +396,7 @@ func bindTopicTypeJava(kind abi.Type, structs map[string]*tmplStruct) string {
 	// parameters that are not value types i.e. arrays and structs are not
 	// stored directly but instead a keccak256-hash of an encoding is stored.
 	//
-	// We only convert stringS and bytes to hash, still need to deal with
+	// We only convert strings and bytes to hash, still need to deal with
 	// array(both fixed-size and dynamic-size) and struct.
 	if bound == "String" || bound == "byte[]" {
 		bound = "Hash"
@@ -401,7 +417,7 @@ var bindStructType = map[Lang]func(kind abi.Type, structs map[string]*tmplStruct
 func bindStructTypeGo(kind abi.Type, structs map[string]*tmplStruct) string {
 	switch kind.T {
 	case abi.TupleTy:
-		// We compose raw struct name and canonical parameter expression
+		// We compose a raw struct name and a canonical parameter expression
 		// together here. The reason is before solidity v0.5.11, kind.TupleRawName
 		// is empty, so we use canonical parameter expression to distinguish
 		// different struct definition. From the consideration of backward
@@ -440,7 +456,7 @@ func bindStructTypeGo(kind abi.Type, structs map[string]*tmplStruct) string {
 func bindStructTypeJava(kind abi.Type, structs map[string]*tmplStruct) string {
 	switch kind.T {
 	case abi.TupleTy:
-		// We compose raw struct name and canonical parameter expression
+		// We compose a raw struct name and a canonical parameter expression
 		// together here. The reason is before solidity v0.5.11, kind.TupleRawName
 		// is empty, so we use canonical parameter expression to distinguish
 		// different struct definition. From the consideration of backward
@@ -472,7 +488,7 @@ func bindStructTypeJava(kind abi.Type, structs map[string]*tmplStruct) string {
 }
 
 // namedType is a set of functions that transform language specific types to
-// named versions that my be used inside method names.
+// named versions that may be used inside method names.
 var namedType = map[Lang]func(string, abi.Type) string{
 	LangGo:   func(string, abi.Type) string { panic("this shouldn't be needed") },
 	LangJava: namedTypeJava,
@@ -514,16 +530,14 @@ func alias(aliases map[string]string, n string) string {
 }
 
 // methodNormalizer is a name transformer that modifies Solidity method names to
-// conform to target language naming concentions.
+// conform to target language naming conventions.
 var methodNormalizer = map[Lang]func(string) string{
 	LangGo:   abi.ToCamelCase,
 	LangJava: decapitalise,
 }
 
 // capitalise makes a camel-case string which starts with an upper case character.
-func capitalise(input string) string {
-	return abi.ToCamelCase(input)
-}
+var capitalise = abi.ToCamelCase
 
 // decapitalise makes a camel-case string which starts with a lower case character.
 func decapitalise(input string) string {

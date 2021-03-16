@@ -4,14 +4,14 @@
 package bindings
 
 import (
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strings"
-	//"github.com/sivo4kin/digiu-cross-chain/bind"
+
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -46,25 +46,6 @@ func DeploySafeMath(auth *bind.TransactOpts, backend bind.ContractBackend) (comm
 	return address, tx, &SafeMath{SafeMathCaller: SafeMathCaller{contract: contract}, SafeMathTransactor: SafeMathTransactor{contract: contract}, SafeMathFilterer: SafeMathFilterer{contract: contract}}, nil
 }
 
-// DeploySafeMathSync deploys a new Ethereum contract and waits for receipt, binding an instance of SafeMathSession to it.
-func DeploySafeMathSync(session *bind.TransactSession, backend bind.ContractBackend) (*types.Transaction, *types.Receipt, *SafeMathSession, error) {
-	parsed, err := abi.JSON(strings.NewReader(SafeMathABI))
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	session.Lock()
-	address, tx, _, err := bind.DeployContract(session.TransactOpts, parsed, common.FromHex(SafeMathBin), backend)
-	receipt, err := session.WaitTransaction(tx)
-	if err != nil {
-		session.Unlock()
-		return nil, nil, nil, err
-	}
-	session.TransactOpts.Nonce.Add(session.TransactOpts.Nonce, big.NewInt(1))
-	session.Unlock()
-	contractSession, err := NewSafeMathSession(address, backend, session)
-	return tx, receipt, contractSession, err
-}
-
 // SafeMath is an auto generated Go binding around an Ethereum contract.
 type SafeMath struct {
 	SafeMathCaller     // Read-only binding to the contract
@@ -90,9 +71,9 @@ type SafeMathFilterer struct {
 // SafeMathSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type SafeMathSession struct {
-	Contract           *SafeMath // Generic contract binding to set the session for
-	transactionSession *bind.TransactSession
-	Address            common.Address
+	Contract     *SafeMath         // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
 // SafeMathCallerSession is an auto generated read-only Go binding around an Ethereum contract,
@@ -160,18 +141,6 @@ func NewSafeMathFilterer(address common.Address, filterer bind.ContractFilterer)
 	return &SafeMathFilterer{contract: contract}, nil
 }
 
-func NewSafeMathSession(address common.Address, backend bind.ContractBackend, transactionSession *bind.TransactSession) (*SafeMathSession, error) {
-	SafeMathInstance, err := NewSafeMath(address, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &SafeMathSession{
-		Contract:           SafeMathInstance,
-		transactionSession: transactionSession,
-		Address:            address,
-	}, nil
-}
-
 // bindSafeMath binds a generic wrapper to an already deployed contract.
 func bindSafeMath(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(SafeMathABI))
@@ -185,7 +154,7 @@ func bindSafeMath(address common.Address, caller bind.ContractCaller, transactor
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_SafeMath *SafeMathRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_SafeMath *SafeMathRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _SafeMath.Contract.SafeMathCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -204,7 +173,7 @@ func (_SafeMath *SafeMathRaw) Transact(opts *bind.TransactOpts, method string, p
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_SafeMath *SafeMathCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_SafeMath *SafeMathCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _SafeMath.Contract.contract.Call(opts, result, method, params...)
 }
 

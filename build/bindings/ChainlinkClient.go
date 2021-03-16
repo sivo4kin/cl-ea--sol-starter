@@ -4,14 +4,14 @@
 package bindings
 
 import (
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strings"
-	//"github.com/sivo4kin/digiu-cross-chain/bind"
+
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -46,25 +46,6 @@ func DeployChainlinkClient(auth *bind.TransactOpts, backend bind.ContractBackend
 	return address, tx, &ChainlinkClient{ChainlinkClientCaller: ChainlinkClientCaller{contract: contract}, ChainlinkClientTransactor: ChainlinkClientTransactor{contract: contract}, ChainlinkClientFilterer: ChainlinkClientFilterer{contract: contract}}, nil
 }
 
-// DeployChainlinkClientSync deploys a new Ethereum contract and waits for receipt, binding an instance of ChainlinkClientSession to it.
-func DeployChainlinkClientSync(session *bind.TransactSession, backend bind.ContractBackend) (*types.Transaction, *types.Receipt, *ChainlinkClientSession, error) {
-	parsed, err := abi.JSON(strings.NewReader(ChainlinkClientABI))
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	session.Lock()
-	address, tx, _, err := bind.DeployContract(session.TransactOpts, parsed, common.FromHex(ChainlinkClientBin), backend)
-	receipt, err := session.WaitTransaction(tx)
-	if err != nil {
-		session.Unlock()
-		return nil, nil, nil, err
-	}
-	session.TransactOpts.Nonce.Add(session.TransactOpts.Nonce, big.NewInt(1))
-	session.Unlock()
-	contractSession, err := NewChainlinkClientSession(address, backend, session)
-	return tx, receipt, contractSession, err
-}
-
 // ChainlinkClient is an auto generated Go binding around an Ethereum contract.
 type ChainlinkClient struct {
 	ChainlinkClientCaller     // Read-only binding to the contract
@@ -90,9 +71,9 @@ type ChainlinkClientFilterer struct {
 // ChainlinkClientSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type ChainlinkClientSession struct {
-	Contract           *ChainlinkClient // Generic contract binding to set the session for
-	transactionSession *bind.TransactSession
-	Address            common.Address
+	Contract     *ChainlinkClient  // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
 // ChainlinkClientCallerSession is an auto generated read-only Go binding around an Ethereum contract,
@@ -160,18 +141,6 @@ func NewChainlinkClientFilterer(address common.Address, filterer bind.ContractFi
 	return &ChainlinkClientFilterer{contract: contract}, nil
 }
 
-func NewChainlinkClientSession(address common.Address, backend bind.ContractBackend, transactionSession *bind.TransactSession) (*ChainlinkClientSession, error) {
-	ChainlinkClientInstance, err := NewChainlinkClient(address, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &ChainlinkClientSession{
-		Contract:           ChainlinkClientInstance,
-		transactionSession: transactionSession,
-		Address:            address,
-	}, nil
-}
-
 // bindChainlinkClient binds a generic wrapper to an already deployed contract.
 func bindChainlinkClient(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(ChainlinkClientABI))
@@ -185,7 +154,7 @@ func bindChainlinkClient(address common.Address, caller bind.ContractCaller, tra
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_ChainlinkClient *ChainlinkClientRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_ChainlinkClient *ChainlinkClientRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _ChainlinkClient.Contract.ChainlinkClientCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -204,7 +173,7 @@ func (_ChainlinkClient *ChainlinkClientRaw) Transact(opts *bind.TransactOpts, me
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_ChainlinkClient *ChainlinkClientCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_ChainlinkClient *ChainlinkClientCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _ChainlinkClient.Contract.contract.Call(opts, result, method, params...)
 }
 
@@ -359,6 +328,7 @@ func (_ChainlinkClient *ChainlinkClientFilterer) ParseChainlinkCancelled(log typ
 	if err := _ChainlinkClient.contract.UnpackLog(event, "ChainlinkCancelled", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -502,6 +472,7 @@ func (_ChainlinkClient *ChainlinkClientFilterer) ParseChainlinkFulfilled(log typ
 	if err := _ChainlinkClient.contract.UnpackLog(event, "ChainlinkFulfilled", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -645,5 +616,6 @@ func (_ChainlinkClient *ChainlinkClientFilterer) ParseChainlinkRequested(log typ
 	if err := _ChainlinkClient.contract.UnpackLog(event, "ChainlinkRequested", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }

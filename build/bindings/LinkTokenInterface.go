@@ -4,14 +4,14 @@
 package bindings
 
 import (
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strings"
-	//"github.com/sivo4kin/digiu-cross-chain/bind"
+
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -54,9 +54,9 @@ type LinkTokenInterfaceFilterer struct {
 // LinkTokenInterfaceSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type LinkTokenInterfaceSession struct {
-	Contract           *LinkTokenInterface // Generic contract binding to set the session for
-	transactionSession *bind.TransactSession
-	Address            common.Address
+	Contract     *LinkTokenInterface // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts       // Call options to use throughout this session
+	TransactOpts bind.TransactOpts   // Transaction auth options to use throughout this session
 }
 
 // LinkTokenInterfaceCallerSession is an auto generated read-only Go binding around an Ethereum contract,
@@ -124,18 +124,6 @@ func NewLinkTokenInterfaceFilterer(address common.Address, filterer bind.Contrac
 	return &LinkTokenInterfaceFilterer{contract: contract}, nil
 }
 
-func NewLinkTokenInterfaceSession(address common.Address, backend bind.ContractBackend, transactionSession *bind.TransactSession) (*LinkTokenInterfaceSession, error) {
-	LinkTokenInterfaceInstance, err := NewLinkTokenInterface(address, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &LinkTokenInterfaceSession{
-		Contract:           LinkTokenInterfaceInstance,
-		transactionSession: transactionSession,
-		Address:            address,
-	}, nil
-}
-
 // bindLinkTokenInterface binds a generic wrapper to an already deployed contract.
 func bindLinkTokenInterface(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(LinkTokenInterfaceABI))
@@ -149,7 +137,7 @@ func bindLinkTokenInterface(address common.Address, caller bind.ContractCaller, 
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_LinkTokenInterface *LinkTokenInterfaceRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_LinkTokenInterface *LinkTokenInterfaceRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _LinkTokenInterface.Contract.LinkTokenInterfaceCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -168,7 +156,7 @@ func (_LinkTokenInterface *LinkTokenInterfaceRaw) Transact(opts *bind.TransactOp
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_LinkTokenInterface *LinkTokenInterfaceCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_LinkTokenInterface *LinkTokenInterfaceCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _LinkTokenInterface.Contract.contract.Call(opts, result, method, params...)
 }
 
@@ -187,19 +175,24 @@ func (_LinkTokenInterface *LinkTokenInterfaceTransactorRaw) Transact(opts *bind.
 //
 // Solidity: function allowance(address owner, address spender) view returns(uint256 remaining)
 func (_LinkTokenInterface *LinkTokenInterfaceCaller) Allowance(opts *bind.CallOpts, owner common.Address, spender common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _LinkTokenInterface.contract.Call(opts, out, "allowance", owner, spender)
-	return *ret0, err
+	var out []interface{}
+	err := _LinkTokenInterface.contract.Call(opts, &out, "allowance", owner, spender)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // Allowance is a free data retrieval call binding the contract method 0xdd62ed3e.
 //
 // Solidity: function allowance(address owner, address spender) view returns(uint256 remaining)
 func (_LinkTokenInterface *LinkTokenInterfaceSession) Allowance(owner common.Address, spender common.Address) (*big.Int, error) {
-	return _LinkTokenInterface.Contract.Allowance(_LinkTokenInterface.transactionSession.CallOpts, owner, spender)
+	return _LinkTokenInterface.Contract.Allowance(&_LinkTokenInterface.CallOpts, owner, spender)
 }
 
 // Allowance is a free data retrieval call binding the contract method 0xdd62ed3e.
@@ -213,19 +206,24 @@ func (_LinkTokenInterface *LinkTokenInterfaceCallerSession) Allowance(owner comm
 //
 // Solidity: function balanceOf(address owner) view returns(uint256 balance)
 func (_LinkTokenInterface *LinkTokenInterfaceCaller) BalanceOf(opts *bind.CallOpts, owner common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _LinkTokenInterface.contract.Call(opts, out, "balanceOf", owner)
-	return *ret0, err
+	var out []interface{}
+	err := _LinkTokenInterface.contract.Call(opts, &out, "balanceOf", owner)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
 //
 // Solidity: function balanceOf(address owner) view returns(uint256 balance)
 func (_LinkTokenInterface *LinkTokenInterfaceSession) BalanceOf(owner common.Address) (*big.Int, error) {
-	return _LinkTokenInterface.Contract.BalanceOf(_LinkTokenInterface.transactionSession.CallOpts, owner)
+	return _LinkTokenInterface.Contract.BalanceOf(&_LinkTokenInterface.CallOpts, owner)
 }
 
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
@@ -239,19 +237,24 @@ func (_LinkTokenInterface *LinkTokenInterfaceCallerSession) BalanceOf(owner comm
 //
 // Solidity: function decimals() view returns(uint8 decimalPlaces)
 func (_LinkTokenInterface *LinkTokenInterfaceCaller) Decimals(opts *bind.CallOpts) (uint8, error) {
-	var (
-		ret0 = new(uint8)
-	)
-	out := ret0
-	err := _LinkTokenInterface.contract.Call(opts, out, "decimals")
-	return *ret0, err
+	var out []interface{}
+	err := _LinkTokenInterface.contract.Call(opts, &out, "decimals")
+
+	if err != nil {
+		return *new(uint8), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint8)).(*uint8)
+
+	return out0, err
+
 }
 
 // Decimals is a free data retrieval call binding the contract method 0x313ce567.
 //
 // Solidity: function decimals() view returns(uint8 decimalPlaces)
 func (_LinkTokenInterface *LinkTokenInterfaceSession) Decimals() (uint8, error) {
-	return _LinkTokenInterface.Contract.Decimals(_LinkTokenInterface.transactionSession.CallOpts)
+	return _LinkTokenInterface.Contract.Decimals(&_LinkTokenInterface.CallOpts)
 }
 
 // Decimals is a free data retrieval call binding the contract method 0x313ce567.
@@ -265,19 +268,24 @@ func (_LinkTokenInterface *LinkTokenInterfaceCallerSession) Decimals() (uint8, e
 //
 // Solidity: function name() view returns(string tokenName)
 func (_LinkTokenInterface *LinkTokenInterfaceCaller) Name(opts *bind.CallOpts) (string, error) {
-	var (
-		ret0 = new(string)
-	)
-	out := ret0
-	err := _LinkTokenInterface.contract.Call(opts, out, "name")
-	return *ret0, err
+	var out []interface{}
+	err := _LinkTokenInterface.contract.Call(opts, &out, "name")
+
+	if err != nil {
+		return *new(string), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(string)).(*string)
+
+	return out0, err
+
 }
 
 // Name is a free data retrieval call binding the contract method 0x06fdde03.
 //
 // Solidity: function name() view returns(string tokenName)
 func (_LinkTokenInterface *LinkTokenInterfaceSession) Name() (string, error) {
-	return _LinkTokenInterface.Contract.Name(_LinkTokenInterface.transactionSession.CallOpts)
+	return _LinkTokenInterface.Contract.Name(&_LinkTokenInterface.CallOpts)
 }
 
 // Name is a free data retrieval call binding the contract method 0x06fdde03.
@@ -291,19 +299,24 @@ func (_LinkTokenInterface *LinkTokenInterfaceCallerSession) Name() (string, erro
 //
 // Solidity: function symbol() view returns(string tokenSymbol)
 func (_LinkTokenInterface *LinkTokenInterfaceCaller) Symbol(opts *bind.CallOpts) (string, error) {
-	var (
-		ret0 = new(string)
-	)
-	out := ret0
-	err := _LinkTokenInterface.contract.Call(opts, out, "symbol")
-	return *ret0, err
+	var out []interface{}
+	err := _LinkTokenInterface.contract.Call(opts, &out, "symbol")
+
+	if err != nil {
+		return *new(string), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(string)).(*string)
+
+	return out0, err
+
 }
 
 // Symbol is a free data retrieval call binding the contract method 0x95d89b41.
 //
 // Solidity: function symbol() view returns(string tokenSymbol)
 func (_LinkTokenInterface *LinkTokenInterfaceSession) Symbol() (string, error) {
-	return _LinkTokenInterface.Contract.Symbol(_LinkTokenInterface.transactionSession.CallOpts)
+	return _LinkTokenInterface.Contract.Symbol(&_LinkTokenInterface.CallOpts)
 }
 
 // Symbol is a free data retrieval call binding the contract method 0x95d89b41.
@@ -317,19 +330,24 @@ func (_LinkTokenInterface *LinkTokenInterfaceCallerSession) Symbol() (string, er
 //
 // Solidity: function totalSupply() view returns(uint256 totalTokensIssued)
 func (_LinkTokenInterface *LinkTokenInterfaceCaller) TotalSupply(opts *bind.CallOpts) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _LinkTokenInterface.contract.Call(opts, out, "totalSupply")
-	return *ret0, err
+	var out []interface{}
+	err := _LinkTokenInterface.contract.Call(opts, &out, "totalSupply")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // TotalSupply is a free data retrieval call binding the contract method 0x18160ddd.
 //
 // Solidity: function totalSupply() view returns(uint256 totalTokensIssued)
 func (_LinkTokenInterface *LinkTokenInterfaceSession) TotalSupply() (*big.Int, error) {
-	return _LinkTokenInterface.Contract.TotalSupply(_LinkTokenInterface.transactionSession.CallOpts)
+	return _LinkTokenInterface.Contract.TotalSupply(&_LinkTokenInterface.CallOpts)
 }
 
 // TotalSupply is a free data retrieval call binding the contract method 0x18160ddd.
@@ -346,62 +364,17 @@ func (_LinkTokenInterface *LinkTokenInterfaceTransactor) Approve(opts *bind.Tran
 	return _LinkTokenInterface.contract.Transact(opts, "approve", spender, value)
 }
 
-func (_LinkTokenInterface *LinkTokenInterfaceTransactor) ApproveRawTx(opts *bind.TransactOpts, spender common.Address, value *big.Int) (*types.Transaction, error) {
-	return _LinkTokenInterface.contract.RawTx(opts, "approve", spender, value)
-}
-
 // Approve is a paid mutator transaction binding the contract method 0x095ea7b3.
-// Will wait for tx receipt
 //
 // Solidity: function approve(address spender, uint256 value) returns(bool success)
-func (_LinkTokenInterface *LinkTokenInterfaceSession) Approve(spender common.Address, value *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_LinkTokenInterface.transactionSession.Lock()
-	tx, err := _LinkTokenInterface.Contract.Approve(_LinkTokenInterface.transactionSession.TransactOpts, spender, value)
-	if err != nil {
-		_LinkTokenInterface.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_LinkTokenInterface.transactionSession.TransactOpts.Nonce.Add(_LinkTokenInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_LinkTokenInterface.transactionSession.Unlock()
-	receipt, err := _LinkTokenInterface.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// Approve returns raw transaction bound to the contract method 0x095ea7b3.
-//
-// Solidity: function approve(address spender, uint256 value) returns(bool success)
-func (_LinkTokenInterface *LinkTokenInterfaceSession) ApproveRawTx(spender common.Address, value *big.Int) (*types.Transaction, error) {
-	tx, err := _LinkTokenInterface.Contract.ApproveRawTx(_LinkTokenInterface.transactionSession.TransactOpts, spender, value)
-	return tx, err
-}
-
-// Approve is a paid mutator transaction binding the contract method 0x095ea7b3.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function approve(address spender, uint256 value) returns(bool success)
-func (_LinkTokenInterface *LinkTokenInterfaceSession) ApproveAsync(receiptCh chan *types.ReceiptResult, spender common.Address, value *big.Int) (*types.Transaction, error) {
-	_LinkTokenInterface.transactionSession.Lock()
-	tx, err := _LinkTokenInterface.Contract.Approve(_LinkTokenInterface.transactionSession.TransactOpts, spender, value)
-	if err != nil {
-		_LinkTokenInterface.transactionSession.Unlock()
-		return nil, err
-	}
-	_LinkTokenInterface.transactionSession.TransactOpts.Nonce.Add(_LinkTokenInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_LinkTokenInterface.transactionSession.Unlock()
-	go func() {
-		receipt, err := _LinkTokenInterface.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_LinkTokenInterface *LinkTokenInterfaceSession) Approve(spender common.Address, value *big.Int) (*types.Transaction, error) {
+	return _LinkTokenInterface.Contract.Approve(&_LinkTokenInterface.TransactOpts, spender, value)
 }
 
 // Approve is a paid mutator transaction binding the contract method 0x095ea7b3.
 //
 // Solidity: function approve(address spender, uint256 value) returns(bool success)
-func (_LinkTokenInterface *LinkTokenInterfaceTransactorSession) Approve(wait bool, spender common.Address, value *big.Int) (*types.Transaction, error) {
+func (_LinkTokenInterface *LinkTokenInterfaceTransactorSession) Approve(spender common.Address, value *big.Int) (*types.Transaction, error) {
 	return _LinkTokenInterface.Contract.Approve(&_LinkTokenInterface.TransactOpts, spender, value)
 }
 
@@ -412,62 +385,17 @@ func (_LinkTokenInterface *LinkTokenInterfaceTransactor) DecreaseApproval(opts *
 	return _LinkTokenInterface.contract.Transact(opts, "decreaseApproval", spender, addedValue)
 }
 
-func (_LinkTokenInterface *LinkTokenInterfaceTransactor) DecreaseApprovalRawTx(opts *bind.TransactOpts, spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
-	return _LinkTokenInterface.contract.RawTx(opts, "decreaseApproval", spender, addedValue)
-}
-
 // DecreaseApproval is a paid mutator transaction binding the contract method 0x66188463.
-// Will wait for tx receipt
 //
 // Solidity: function decreaseApproval(address spender, uint256 addedValue) returns(bool success)
-func (_LinkTokenInterface *LinkTokenInterfaceSession) DecreaseApproval(spender common.Address, addedValue *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_LinkTokenInterface.transactionSession.Lock()
-	tx, err := _LinkTokenInterface.Contract.DecreaseApproval(_LinkTokenInterface.transactionSession.TransactOpts, spender, addedValue)
-	if err != nil {
-		_LinkTokenInterface.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_LinkTokenInterface.transactionSession.TransactOpts.Nonce.Add(_LinkTokenInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_LinkTokenInterface.transactionSession.Unlock()
-	receipt, err := _LinkTokenInterface.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// DecreaseApproval returns raw transaction bound to the contract method 0x66188463.
-//
-// Solidity: function decreaseApproval(address spender, uint256 addedValue) returns(bool success)
-func (_LinkTokenInterface *LinkTokenInterfaceSession) DecreaseApprovalRawTx(spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
-	tx, err := _LinkTokenInterface.Contract.DecreaseApprovalRawTx(_LinkTokenInterface.transactionSession.TransactOpts, spender, addedValue)
-	return tx, err
-}
-
-// DecreaseApproval is a paid mutator transaction binding the contract method 0x66188463.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function decreaseApproval(address spender, uint256 addedValue) returns(bool success)
-func (_LinkTokenInterface *LinkTokenInterfaceSession) DecreaseApprovalAsync(receiptCh chan *types.ReceiptResult, spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
-	_LinkTokenInterface.transactionSession.Lock()
-	tx, err := _LinkTokenInterface.Contract.DecreaseApproval(_LinkTokenInterface.transactionSession.TransactOpts, spender, addedValue)
-	if err != nil {
-		_LinkTokenInterface.transactionSession.Unlock()
-		return nil, err
-	}
-	_LinkTokenInterface.transactionSession.TransactOpts.Nonce.Add(_LinkTokenInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_LinkTokenInterface.transactionSession.Unlock()
-	go func() {
-		receipt, err := _LinkTokenInterface.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_LinkTokenInterface *LinkTokenInterfaceSession) DecreaseApproval(spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
+	return _LinkTokenInterface.Contract.DecreaseApproval(&_LinkTokenInterface.TransactOpts, spender, addedValue)
 }
 
 // DecreaseApproval is a paid mutator transaction binding the contract method 0x66188463.
 //
 // Solidity: function decreaseApproval(address spender, uint256 addedValue) returns(bool success)
-func (_LinkTokenInterface *LinkTokenInterfaceTransactorSession) DecreaseApproval(wait bool, spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
+func (_LinkTokenInterface *LinkTokenInterfaceTransactorSession) DecreaseApproval(spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
 	return _LinkTokenInterface.Contract.DecreaseApproval(&_LinkTokenInterface.TransactOpts, spender, addedValue)
 }
 
@@ -478,62 +406,17 @@ func (_LinkTokenInterface *LinkTokenInterfaceTransactor) IncreaseApproval(opts *
 	return _LinkTokenInterface.contract.Transact(opts, "increaseApproval", spender, subtractedValue)
 }
 
-func (_LinkTokenInterface *LinkTokenInterfaceTransactor) IncreaseApprovalRawTx(opts *bind.TransactOpts, spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
-	return _LinkTokenInterface.contract.RawTx(opts, "increaseApproval", spender, subtractedValue)
-}
-
 // IncreaseApproval is a paid mutator transaction binding the contract method 0xd73dd623.
-// Will wait for tx receipt
 //
 // Solidity: function increaseApproval(address spender, uint256 subtractedValue) returns()
-func (_LinkTokenInterface *LinkTokenInterfaceSession) IncreaseApproval(spender common.Address, subtractedValue *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_LinkTokenInterface.transactionSession.Lock()
-	tx, err := _LinkTokenInterface.Contract.IncreaseApproval(_LinkTokenInterface.transactionSession.TransactOpts, spender, subtractedValue)
-	if err != nil {
-		_LinkTokenInterface.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_LinkTokenInterface.transactionSession.TransactOpts.Nonce.Add(_LinkTokenInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_LinkTokenInterface.transactionSession.Unlock()
-	receipt, err := _LinkTokenInterface.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// IncreaseApproval returns raw transaction bound to the contract method 0xd73dd623.
-//
-// Solidity: function increaseApproval(address spender, uint256 subtractedValue) returns()
-func (_LinkTokenInterface *LinkTokenInterfaceSession) IncreaseApprovalRawTx(spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
-	tx, err := _LinkTokenInterface.Contract.IncreaseApprovalRawTx(_LinkTokenInterface.transactionSession.TransactOpts, spender, subtractedValue)
-	return tx, err
-}
-
-// IncreaseApproval is a paid mutator transaction binding the contract method 0xd73dd623.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function increaseApproval(address spender, uint256 subtractedValue) returns()
-func (_LinkTokenInterface *LinkTokenInterfaceSession) IncreaseApprovalAsync(receiptCh chan *types.ReceiptResult, spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
-	_LinkTokenInterface.transactionSession.Lock()
-	tx, err := _LinkTokenInterface.Contract.IncreaseApproval(_LinkTokenInterface.transactionSession.TransactOpts, spender, subtractedValue)
-	if err != nil {
-		_LinkTokenInterface.transactionSession.Unlock()
-		return nil, err
-	}
-	_LinkTokenInterface.transactionSession.TransactOpts.Nonce.Add(_LinkTokenInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_LinkTokenInterface.transactionSession.Unlock()
-	go func() {
-		receipt, err := _LinkTokenInterface.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_LinkTokenInterface *LinkTokenInterfaceSession) IncreaseApproval(spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
+	return _LinkTokenInterface.Contract.IncreaseApproval(&_LinkTokenInterface.TransactOpts, spender, subtractedValue)
 }
 
 // IncreaseApproval is a paid mutator transaction binding the contract method 0xd73dd623.
 //
 // Solidity: function increaseApproval(address spender, uint256 subtractedValue) returns()
-func (_LinkTokenInterface *LinkTokenInterfaceTransactorSession) IncreaseApproval(wait bool, spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
+func (_LinkTokenInterface *LinkTokenInterfaceTransactorSession) IncreaseApproval(spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
 	return _LinkTokenInterface.Contract.IncreaseApproval(&_LinkTokenInterface.TransactOpts, spender, subtractedValue)
 }
 
@@ -544,62 +427,17 @@ func (_LinkTokenInterface *LinkTokenInterfaceTransactor) Transfer(opts *bind.Tra
 	return _LinkTokenInterface.contract.Transact(opts, "transfer", to, value)
 }
 
-func (_LinkTokenInterface *LinkTokenInterfaceTransactor) TransferRawTx(opts *bind.TransactOpts, to common.Address, value *big.Int) (*types.Transaction, error) {
-	return _LinkTokenInterface.contract.RawTx(opts, "transfer", to, value)
-}
-
 // Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
-// Will wait for tx receipt
 //
 // Solidity: function transfer(address to, uint256 value) returns(bool success)
-func (_LinkTokenInterface *LinkTokenInterfaceSession) Transfer(to common.Address, value *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_LinkTokenInterface.transactionSession.Lock()
-	tx, err := _LinkTokenInterface.Contract.Transfer(_LinkTokenInterface.transactionSession.TransactOpts, to, value)
-	if err != nil {
-		_LinkTokenInterface.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_LinkTokenInterface.transactionSession.TransactOpts.Nonce.Add(_LinkTokenInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_LinkTokenInterface.transactionSession.Unlock()
-	receipt, err := _LinkTokenInterface.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// Transfer returns raw transaction bound to the contract method 0xa9059cbb.
-//
-// Solidity: function transfer(address to, uint256 value) returns(bool success)
-func (_LinkTokenInterface *LinkTokenInterfaceSession) TransferRawTx(to common.Address, value *big.Int) (*types.Transaction, error) {
-	tx, err := _LinkTokenInterface.Contract.TransferRawTx(_LinkTokenInterface.transactionSession.TransactOpts, to, value)
-	return tx, err
-}
-
-// Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function transfer(address to, uint256 value) returns(bool success)
-func (_LinkTokenInterface *LinkTokenInterfaceSession) TransferAsync(receiptCh chan *types.ReceiptResult, to common.Address, value *big.Int) (*types.Transaction, error) {
-	_LinkTokenInterface.transactionSession.Lock()
-	tx, err := _LinkTokenInterface.Contract.Transfer(_LinkTokenInterface.transactionSession.TransactOpts, to, value)
-	if err != nil {
-		_LinkTokenInterface.transactionSession.Unlock()
-		return nil, err
-	}
-	_LinkTokenInterface.transactionSession.TransactOpts.Nonce.Add(_LinkTokenInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_LinkTokenInterface.transactionSession.Unlock()
-	go func() {
-		receipt, err := _LinkTokenInterface.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_LinkTokenInterface *LinkTokenInterfaceSession) Transfer(to common.Address, value *big.Int) (*types.Transaction, error) {
+	return _LinkTokenInterface.Contract.Transfer(&_LinkTokenInterface.TransactOpts, to, value)
 }
 
 // Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
 //
 // Solidity: function transfer(address to, uint256 value) returns(bool success)
-func (_LinkTokenInterface *LinkTokenInterfaceTransactorSession) Transfer(wait bool, to common.Address, value *big.Int) (*types.Transaction, error) {
+func (_LinkTokenInterface *LinkTokenInterfaceTransactorSession) Transfer(to common.Address, value *big.Int) (*types.Transaction, error) {
 	return _LinkTokenInterface.Contract.Transfer(&_LinkTokenInterface.TransactOpts, to, value)
 }
 
@@ -610,62 +448,17 @@ func (_LinkTokenInterface *LinkTokenInterfaceTransactor) TransferAndCall(opts *b
 	return _LinkTokenInterface.contract.Transact(opts, "transferAndCall", to, value, data)
 }
 
-func (_LinkTokenInterface *LinkTokenInterfaceTransactor) TransferAndCallRawTx(opts *bind.TransactOpts, to common.Address, value *big.Int, data []byte) (*types.Transaction, error) {
-	return _LinkTokenInterface.contract.RawTx(opts, "transferAndCall", to, value, data)
-}
-
 // TransferAndCall is a paid mutator transaction binding the contract method 0x4000aea0.
-// Will wait for tx receipt
 //
 // Solidity: function transferAndCall(address to, uint256 value, bytes data) returns(bool success)
-func (_LinkTokenInterface *LinkTokenInterfaceSession) TransferAndCall(to common.Address, value *big.Int, data []byte) (*types.Transaction, *types.Receipt, error) {
-	_LinkTokenInterface.transactionSession.Lock()
-	tx, err := _LinkTokenInterface.Contract.TransferAndCall(_LinkTokenInterface.transactionSession.TransactOpts, to, value, data)
-	if err != nil {
-		_LinkTokenInterface.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_LinkTokenInterface.transactionSession.TransactOpts.Nonce.Add(_LinkTokenInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_LinkTokenInterface.transactionSession.Unlock()
-	receipt, err := _LinkTokenInterface.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// TransferAndCall returns raw transaction bound to the contract method 0x4000aea0.
-//
-// Solidity: function transferAndCall(address to, uint256 value, bytes data) returns(bool success)
-func (_LinkTokenInterface *LinkTokenInterfaceSession) TransferAndCallRawTx(to common.Address, value *big.Int, data []byte) (*types.Transaction, error) {
-	tx, err := _LinkTokenInterface.Contract.TransferAndCallRawTx(_LinkTokenInterface.transactionSession.TransactOpts, to, value, data)
-	return tx, err
-}
-
-// TransferAndCall is a paid mutator transaction binding the contract method 0x4000aea0.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function transferAndCall(address to, uint256 value, bytes data) returns(bool success)
-func (_LinkTokenInterface *LinkTokenInterfaceSession) TransferAndCallAsync(receiptCh chan *types.ReceiptResult, to common.Address, value *big.Int, data []byte) (*types.Transaction, error) {
-	_LinkTokenInterface.transactionSession.Lock()
-	tx, err := _LinkTokenInterface.Contract.TransferAndCall(_LinkTokenInterface.transactionSession.TransactOpts, to, value, data)
-	if err != nil {
-		_LinkTokenInterface.transactionSession.Unlock()
-		return nil, err
-	}
-	_LinkTokenInterface.transactionSession.TransactOpts.Nonce.Add(_LinkTokenInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_LinkTokenInterface.transactionSession.Unlock()
-	go func() {
-		receipt, err := _LinkTokenInterface.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_LinkTokenInterface *LinkTokenInterfaceSession) TransferAndCall(to common.Address, value *big.Int, data []byte) (*types.Transaction, error) {
+	return _LinkTokenInterface.Contract.TransferAndCall(&_LinkTokenInterface.TransactOpts, to, value, data)
 }
 
 // TransferAndCall is a paid mutator transaction binding the contract method 0x4000aea0.
 //
 // Solidity: function transferAndCall(address to, uint256 value, bytes data) returns(bool success)
-func (_LinkTokenInterface *LinkTokenInterfaceTransactorSession) TransferAndCall(wait bool, to common.Address, value *big.Int, data []byte) (*types.Transaction, error) {
+func (_LinkTokenInterface *LinkTokenInterfaceTransactorSession) TransferAndCall(to common.Address, value *big.Int, data []byte) (*types.Transaction, error) {
 	return _LinkTokenInterface.Contract.TransferAndCall(&_LinkTokenInterface.TransactOpts, to, value, data)
 }
 
@@ -676,61 +469,16 @@ func (_LinkTokenInterface *LinkTokenInterfaceTransactor) TransferFrom(opts *bind
 	return _LinkTokenInterface.contract.Transact(opts, "transferFrom", from, to, value)
 }
 
-func (_LinkTokenInterface *LinkTokenInterfaceTransactor) TransferFromRawTx(opts *bind.TransactOpts, from common.Address, to common.Address, value *big.Int) (*types.Transaction, error) {
-	return _LinkTokenInterface.contract.RawTx(opts, "transferFrom", from, to, value)
-}
-
 // TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
-// Will wait for tx receipt
 //
 // Solidity: function transferFrom(address from, address to, uint256 value) returns(bool success)
-func (_LinkTokenInterface *LinkTokenInterfaceSession) TransferFrom(from common.Address, to common.Address, value *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_LinkTokenInterface.transactionSession.Lock()
-	tx, err := _LinkTokenInterface.Contract.TransferFrom(_LinkTokenInterface.transactionSession.TransactOpts, from, to, value)
-	if err != nil {
-		_LinkTokenInterface.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_LinkTokenInterface.transactionSession.TransactOpts.Nonce.Add(_LinkTokenInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_LinkTokenInterface.transactionSession.Unlock()
-	receipt, err := _LinkTokenInterface.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// TransferFrom returns raw transaction bound to the contract method 0x23b872dd.
-//
-// Solidity: function transferFrom(address from, address to, uint256 value) returns(bool success)
-func (_LinkTokenInterface *LinkTokenInterfaceSession) TransferFromRawTx(from common.Address, to common.Address, value *big.Int) (*types.Transaction, error) {
-	tx, err := _LinkTokenInterface.Contract.TransferFromRawTx(_LinkTokenInterface.transactionSession.TransactOpts, from, to, value)
-	return tx, err
-}
-
-// TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function transferFrom(address from, address to, uint256 value) returns(bool success)
-func (_LinkTokenInterface *LinkTokenInterfaceSession) TransferFromAsync(receiptCh chan *types.ReceiptResult, from common.Address, to common.Address, value *big.Int) (*types.Transaction, error) {
-	_LinkTokenInterface.transactionSession.Lock()
-	tx, err := _LinkTokenInterface.Contract.TransferFrom(_LinkTokenInterface.transactionSession.TransactOpts, from, to, value)
-	if err != nil {
-		_LinkTokenInterface.transactionSession.Unlock()
-		return nil, err
-	}
-	_LinkTokenInterface.transactionSession.TransactOpts.Nonce.Add(_LinkTokenInterface.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_LinkTokenInterface.transactionSession.Unlock()
-	go func() {
-		receipt, err := _LinkTokenInterface.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_LinkTokenInterface *LinkTokenInterfaceSession) TransferFrom(from common.Address, to common.Address, value *big.Int) (*types.Transaction, error) {
+	return _LinkTokenInterface.Contract.TransferFrom(&_LinkTokenInterface.TransactOpts, from, to, value)
 }
 
 // TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
 //
 // Solidity: function transferFrom(address from, address to, uint256 value) returns(bool success)
-func (_LinkTokenInterface *LinkTokenInterfaceTransactorSession) TransferFrom(wait bool, from common.Address, to common.Address, value *big.Int) (*types.Transaction, error) {
+func (_LinkTokenInterface *LinkTokenInterfaceTransactorSession) TransferFrom(from common.Address, to common.Address, value *big.Int) (*types.Transaction, error) {
 	return _LinkTokenInterface.Contract.TransferFrom(&_LinkTokenInterface.TransactOpts, from, to, value)
 }

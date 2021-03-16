@@ -4,14 +4,14 @@
 package bindings
 
 import (
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strings"
-	//"github.com/sivo4kin/digiu-cross-chain/bind"
+
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -54,9 +54,9 @@ type OwnableFilterer struct {
 // OwnableSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type OwnableSession struct {
-	Contract           *Ownable // Generic contract binding to set the session for
-	transactionSession *bind.TransactSession
-	Address            common.Address
+	Contract     *Ownable          // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
 // OwnableCallerSession is an auto generated read-only Go binding around an Ethereum contract,
@@ -124,18 +124,6 @@ func NewOwnableFilterer(address common.Address, filterer bind.ContractFilterer) 
 	return &OwnableFilterer{contract: contract}, nil
 }
 
-func NewOwnableSession(address common.Address, backend bind.ContractBackend, transactionSession *bind.TransactSession) (*OwnableSession, error) {
-	OwnableInstance, err := NewOwnable(address, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &OwnableSession{
-		Contract:           OwnableInstance,
-		transactionSession: transactionSession,
-		Address:            address,
-	}, nil
-}
-
 // bindOwnable binds a generic wrapper to an already deployed contract.
 func bindOwnable(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(OwnableABI))
@@ -149,7 +137,7 @@ func bindOwnable(address common.Address, caller bind.ContractCaller, transactor 
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Ownable *OwnableRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_Ownable *OwnableRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _Ownable.Contract.OwnableCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -168,7 +156,7 @@ func (_Ownable *OwnableRaw) Transact(opts *bind.TransactOpts, method string, par
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Ownable *OwnableCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_Ownable *OwnableCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _Ownable.Contract.contract.Call(opts, result, method, params...)
 }
 
@@ -187,19 +175,24 @@ func (_Ownable *OwnableTransactorRaw) Transact(opts *bind.TransactOpts, method s
 //
 // Solidity: function owner() view returns(address)
 func (_Ownable *OwnableCaller) Owner(opts *bind.CallOpts) (common.Address, error) {
-	var (
-		ret0 = new(common.Address)
-	)
-	out := ret0
-	err := _Ownable.contract.Call(opts, out, "owner")
-	return *ret0, err
+	var out []interface{}
+	err := _Ownable.contract.Call(opts, &out, "owner")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
 //
 // Solidity: function owner() view returns(address)
 func (_Ownable *OwnableSession) Owner() (common.Address, error) {
-	return _Ownable.Contract.Owner(_Ownable.transactionSession.CallOpts)
+	return _Ownable.Contract.Owner(&_Ownable.CallOpts)
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
@@ -216,62 +209,17 @@ func (_Ownable *OwnableTransactor) RenounceOwnership(opts *bind.TransactOpts) (*
 	return _Ownable.contract.Transact(opts, "renounceOwnership")
 }
 
-func (_Ownable *OwnableTransactor) RenounceOwnershipRawTx(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _Ownable.contract.RawTx(opts, "renounceOwnership")
-}
-
 // RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
-// Will wait for tx receipt
 //
 // Solidity: function renounceOwnership() returns()
-func (_Ownable *OwnableSession) RenounceOwnership() (*types.Transaction, *types.Receipt, error) {
-	_Ownable.transactionSession.Lock()
-	tx, err := _Ownable.Contract.RenounceOwnership(_Ownable.transactionSession.TransactOpts)
-	if err != nil {
-		_Ownable.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_Ownable.transactionSession.TransactOpts.Nonce.Add(_Ownable.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_Ownable.transactionSession.Unlock()
-	receipt, err := _Ownable.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// RenounceOwnership returns raw transaction bound to the contract method 0x715018a6.
-//
-// Solidity: function renounceOwnership() returns()
-func (_Ownable *OwnableSession) RenounceOwnershipRawTx() (*types.Transaction, error) {
-	tx, err := _Ownable.Contract.RenounceOwnershipRawTx(_Ownable.transactionSession.TransactOpts)
-	return tx, err
-}
-
-// RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function renounceOwnership() returns()
-func (_Ownable *OwnableSession) RenounceOwnershipAsync(receiptCh chan *types.ReceiptResult) (*types.Transaction, error) {
-	_Ownable.transactionSession.Lock()
-	tx, err := _Ownable.Contract.RenounceOwnership(_Ownable.transactionSession.TransactOpts)
-	if err != nil {
-		_Ownable.transactionSession.Unlock()
-		return nil, err
-	}
-	_Ownable.transactionSession.TransactOpts.Nonce.Add(_Ownable.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_Ownable.transactionSession.Unlock()
-	go func() {
-		receipt, err := _Ownable.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_Ownable *OwnableSession) RenounceOwnership() (*types.Transaction, error) {
+	return _Ownable.Contract.RenounceOwnership(&_Ownable.TransactOpts)
 }
 
 // RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
 //
 // Solidity: function renounceOwnership() returns()
-func (_Ownable *OwnableTransactorSession) RenounceOwnership(wait bool) (*types.Transaction, error) {
+func (_Ownable *OwnableTransactorSession) RenounceOwnership() (*types.Transaction, error) {
 	return _Ownable.Contract.RenounceOwnership(&_Ownable.TransactOpts)
 }
 
@@ -282,62 +230,17 @@ func (_Ownable *OwnableTransactor) TransferOwnership(opts *bind.TransactOpts, ne
 	return _Ownable.contract.Transact(opts, "transferOwnership", newOwner)
 }
 
-func (_Ownable *OwnableTransactor) TransferOwnershipRawTx(opts *bind.TransactOpts, newOwner common.Address) (*types.Transaction, error) {
-	return _Ownable.contract.RawTx(opts, "transferOwnership", newOwner)
-}
-
 // TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
-// Will wait for tx receipt
 //
 // Solidity: function transferOwnership(address newOwner) returns()
-func (_Ownable *OwnableSession) TransferOwnership(newOwner common.Address) (*types.Transaction, *types.Receipt, error) {
-	_Ownable.transactionSession.Lock()
-	tx, err := _Ownable.Contract.TransferOwnership(_Ownable.transactionSession.TransactOpts, newOwner)
-	if err != nil {
-		_Ownable.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_Ownable.transactionSession.TransactOpts.Nonce.Add(_Ownable.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_Ownable.transactionSession.Unlock()
-	receipt, err := _Ownable.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// TransferOwnership returns raw transaction bound to the contract method 0xf2fde38b.
-//
-// Solidity: function transferOwnership(address newOwner) returns()
-func (_Ownable *OwnableSession) TransferOwnershipRawTx(newOwner common.Address) (*types.Transaction, error) {
-	tx, err := _Ownable.Contract.TransferOwnershipRawTx(_Ownable.transactionSession.TransactOpts, newOwner)
-	return tx, err
-}
-
-// TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function transferOwnership(address newOwner) returns()
-func (_Ownable *OwnableSession) TransferOwnershipAsync(receiptCh chan *types.ReceiptResult, newOwner common.Address) (*types.Transaction, error) {
-	_Ownable.transactionSession.Lock()
-	tx, err := _Ownable.Contract.TransferOwnership(_Ownable.transactionSession.TransactOpts, newOwner)
-	if err != nil {
-		_Ownable.transactionSession.Unlock()
-		return nil, err
-	}
-	_Ownable.transactionSession.TransactOpts.Nonce.Add(_Ownable.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_Ownable.transactionSession.Unlock()
-	go func() {
-		receipt, err := _Ownable.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_Ownable *OwnableSession) TransferOwnership(newOwner common.Address) (*types.Transaction, error) {
+	return _Ownable.Contract.TransferOwnership(&_Ownable.TransactOpts, newOwner)
 }
 
 // TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
 //
 // Solidity: function transferOwnership(address newOwner) returns()
-func (_Ownable *OwnableTransactorSession) TransferOwnership(wait bool, newOwner common.Address) (*types.Transaction, error) {
+func (_Ownable *OwnableTransactorSession) TransferOwnership(newOwner common.Address) (*types.Transaction, error) {
 	return _Ownable.Contract.TransferOwnership(&_Ownable.TransactOpts, newOwner)
 }
 
@@ -490,5 +393,6 @@ func (_Ownable *OwnableFilterer) ParseOwnershipTransferred(log types.Log) (*Owna
 	if err := _Ownable.contract.UnpackLog(event, "OwnershipTransferred", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }

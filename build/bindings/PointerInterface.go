@@ -4,14 +4,14 @@
 package bindings
 
 import (
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strings"
-	//"github.com/sivo4kin/digiu-cross-chain/bind"
+
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -54,9 +54,9 @@ type PointerInterfaceFilterer struct {
 // PointerInterfaceSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type PointerInterfaceSession struct {
-	Contract           *PointerInterface // Generic contract binding to set the session for
-	transactionSession *bind.TransactSession
-	Address            common.Address
+	Contract     *PointerInterface // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
 // PointerInterfaceCallerSession is an auto generated read-only Go binding around an Ethereum contract,
@@ -124,18 +124,6 @@ func NewPointerInterfaceFilterer(address common.Address, filterer bind.ContractF
 	return &PointerInterfaceFilterer{contract: contract}, nil
 }
 
-func NewPointerInterfaceSession(address common.Address, backend bind.ContractBackend, transactionSession *bind.TransactSession) (*PointerInterfaceSession, error) {
-	PointerInterfaceInstance, err := NewPointerInterface(address, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &PointerInterfaceSession{
-		Contract:           PointerInterfaceInstance,
-		transactionSession: transactionSession,
-		Address:            address,
-	}, nil
-}
-
 // bindPointerInterface binds a generic wrapper to an already deployed contract.
 func bindPointerInterface(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(PointerInterfaceABI))
@@ -149,7 +137,7 @@ func bindPointerInterface(address common.Address, caller bind.ContractCaller, tr
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_PointerInterface *PointerInterfaceRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_PointerInterface *PointerInterfaceRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _PointerInterface.Contract.PointerInterfaceCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -168,7 +156,7 @@ func (_PointerInterface *PointerInterfaceRaw) Transact(opts *bind.TransactOpts, 
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_PointerInterface *PointerInterfaceCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_PointerInterface *PointerInterfaceCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _PointerInterface.Contract.contract.Call(opts, result, method, params...)
 }
 
@@ -187,19 +175,24 @@ func (_PointerInterface *PointerInterfaceTransactorRaw) Transact(opts *bind.Tran
 //
 // Solidity: function getAddress() view returns(address)
 func (_PointerInterface *PointerInterfaceCaller) GetAddress(opts *bind.CallOpts) (common.Address, error) {
-	var (
-		ret0 = new(common.Address)
-	)
-	out := ret0
-	err := _PointerInterface.contract.Call(opts, out, "getAddress")
-	return *ret0, err
+	var out []interface{}
+	err := _PointerInterface.contract.Call(opts, &out, "getAddress")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
 }
 
 // GetAddress is a free data retrieval call binding the contract method 0x38cc4831.
 //
 // Solidity: function getAddress() view returns(address)
 func (_PointerInterface *PointerInterfaceSession) GetAddress() (common.Address, error) {
-	return _PointerInterface.Contract.GetAddress(_PointerInterface.transactionSession.CallOpts)
+	return _PointerInterface.Contract.GetAddress(&_PointerInterface.CallOpts)
 }
 
 // GetAddress is a free data retrieval call binding the contract method 0x38cc4831.

@@ -4,14 +4,14 @@
 package bindings
 
 import (
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strings"
-	//"github.com/sivo4kin/digiu-cross-chain/bind"
+
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -54,9 +54,9 @@ type ERC20Filterer struct {
 // ERC20Session is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type ERC20Session struct {
-	Contract           *ERC20 // Generic contract binding to set the session for
-	transactionSession *bind.TransactSession
-	Address            common.Address
+	Contract     *ERC20            // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
 // ERC20CallerSession is an auto generated read-only Go binding around an Ethereum contract,
@@ -124,18 +124,6 @@ func NewERC20Filterer(address common.Address, filterer bind.ContractFilterer) (*
 	return &ERC20Filterer{contract: contract}, nil
 }
 
-func NewERC20Session(address common.Address, backend bind.ContractBackend, transactionSession *bind.TransactSession) (*ERC20Session, error) {
-	ERC20Instance, err := NewERC20(address, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &ERC20Session{
-		Contract:           ERC20Instance,
-		transactionSession: transactionSession,
-		Address:            address,
-	}, nil
-}
-
 // bindERC20 binds a generic wrapper to an already deployed contract.
 func bindERC20(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(ERC20ABI))
@@ -149,7 +137,7 @@ func bindERC20(address common.Address, caller bind.ContractCaller, transactor bi
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_ERC20 *ERC20Raw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_ERC20 *ERC20Raw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _ERC20.Contract.ERC20Caller.contract.Call(opts, result, method, params...)
 }
 
@@ -168,7 +156,7 @@ func (_ERC20 *ERC20Raw) Transact(opts *bind.TransactOpts, method string, params 
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_ERC20 *ERC20CallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_ERC20 *ERC20CallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _ERC20.Contract.contract.Call(opts, result, method, params...)
 }
 
@@ -187,19 +175,24 @@ func (_ERC20 *ERC20TransactorRaw) Transact(opts *bind.TransactOpts, method strin
 //
 // Solidity: function allowance(address owner, address spender) view returns(uint256)
 func (_ERC20 *ERC20Caller) Allowance(opts *bind.CallOpts, owner common.Address, spender common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _ERC20.contract.Call(opts, out, "allowance", owner, spender)
-	return *ret0, err
+	var out []interface{}
+	err := _ERC20.contract.Call(opts, &out, "allowance", owner, spender)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // Allowance is a free data retrieval call binding the contract method 0xdd62ed3e.
 //
 // Solidity: function allowance(address owner, address spender) view returns(uint256)
 func (_ERC20 *ERC20Session) Allowance(owner common.Address, spender common.Address) (*big.Int, error) {
-	return _ERC20.Contract.Allowance(_ERC20.transactionSession.CallOpts, owner, spender)
+	return _ERC20.Contract.Allowance(&_ERC20.CallOpts, owner, spender)
 }
 
 // Allowance is a free data retrieval call binding the contract method 0xdd62ed3e.
@@ -213,19 +206,24 @@ func (_ERC20 *ERC20CallerSession) Allowance(owner common.Address, spender common
 //
 // Solidity: function balanceOf(address account) view returns(uint256)
 func (_ERC20 *ERC20Caller) BalanceOf(opts *bind.CallOpts, account common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _ERC20.contract.Call(opts, out, "balanceOf", account)
-	return *ret0, err
+	var out []interface{}
+	err := _ERC20.contract.Call(opts, &out, "balanceOf", account)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
 //
 // Solidity: function balanceOf(address account) view returns(uint256)
 func (_ERC20 *ERC20Session) BalanceOf(account common.Address) (*big.Int, error) {
-	return _ERC20.Contract.BalanceOf(_ERC20.transactionSession.CallOpts, account)
+	return _ERC20.Contract.BalanceOf(&_ERC20.CallOpts, account)
 }
 
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
@@ -239,19 +237,24 @@ func (_ERC20 *ERC20CallerSession) BalanceOf(account common.Address) (*big.Int, e
 //
 // Solidity: function totalSupply() view returns(uint256)
 func (_ERC20 *ERC20Caller) TotalSupply(opts *bind.CallOpts) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _ERC20.contract.Call(opts, out, "totalSupply")
-	return *ret0, err
+	var out []interface{}
+	err := _ERC20.contract.Call(opts, &out, "totalSupply")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // TotalSupply is a free data retrieval call binding the contract method 0x18160ddd.
 //
 // Solidity: function totalSupply() view returns(uint256)
 func (_ERC20 *ERC20Session) TotalSupply() (*big.Int, error) {
-	return _ERC20.Contract.TotalSupply(_ERC20.transactionSession.CallOpts)
+	return _ERC20.Contract.TotalSupply(&_ERC20.CallOpts)
 }
 
 // TotalSupply is a free data retrieval call binding the contract method 0x18160ddd.
@@ -268,62 +271,17 @@ func (_ERC20 *ERC20Transactor) Approve(opts *bind.TransactOpts, spender common.A
 	return _ERC20.contract.Transact(opts, "approve", spender, amount)
 }
 
-func (_ERC20 *ERC20Transactor) ApproveRawTx(opts *bind.TransactOpts, spender common.Address, amount *big.Int) (*types.Transaction, error) {
-	return _ERC20.contract.RawTx(opts, "approve", spender, amount)
-}
-
 // Approve is a paid mutator transaction binding the contract method 0x095ea7b3.
-// Will wait for tx receipt
 //
 // Solidity: function approve(address spender, uint256 amount) returns(bool)
-func (_ERC20 *ERC20Session) Approve(spender common.Address, amount *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_ERC20.transactionSession.Lock()
-	tx, err := _ERC20.Contract.Approve(_ERC20.transactionSession.TransactOpts, spender, amount)
-	if err != nil {
-		_ERC20.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_ERC20.transactionSession.TransactOpts.Nonce.Add(_ERC20.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_ERC20.transactionSession.Unlock()
-	receipt, err := _ERC20.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// Approve returns raw transaction bound to the contract method 0x095ea7b3.
-//
-// Solidity: function approve(address spender, uint256 amount) returns(bool)
-func (_ERC20 *ERC20Session) ApproveRawTx(spender common.Address, amount *big.Int) (*types.Transaction, error) {
-	tx, err := _ERC20.Contract.ApproveRawTx(_ERC20.transactionSession.TransactOpts, spender, amount)
-	return tx, err
-}
-
-// Approve is a paid mutator transaction binding the contract method 0x095ea7b3.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function approve(address spender, uint256 amount) returns(bool)
-func (_ERC20 *ERC20Session) ApproveAsync(receiptCh chan *types.ReceiptResult, spender common.Address, amount *big.Int) (*types.Transaction, error) {
-	_ERC20.transactionSession.Lock()
-	tx, err := _ERC20.Contract.Approve(_ERC20.transactionSession.TransactOpts, spender, amount)
-	if err != nil {
-		_ERC20.transactionSession.Unlock()
-		return nil, err
-	}
-	_ERC20.transactionSession.TransactOpts.Nonce.Add(_ERC20.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_ERC20.transactionSession.Unlock()
-	go func() {
-		receipt, err := _ERC20.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_ERC20 *ERC20Session) Approve(spender common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _ERC20.Contract.Approve(&_ERC20.TransactOpts, spender, amount)
 }
 
 // Approve is a paid mutator transaction binding the contract method 0x095ea7b3.
 //
 // Solidity: function approve(address spender, uint256 amount) returns(bool)
-func (_ERC20 *ERC20TransactorSession) Approve(wait bool, spender common.Address, amount *big.Int) (*types.Transaction, error) {
+func (_ERC20 *ERC20TransactorSession) Approve(spender common.Address, amount *big.Int) (*types.Transaction, error) {
 	return _ERC20.Contract.Approve(&_ERC20.TransactOpts, spender, amount)
 }
 
@@ -334,62 +292,17 @@ func (_ERC20 *ERC20Transactor) Transfer(opts *bind.TransactOpts, recipient commo
 	return _ERC20.contract.Transact(opts, "transfer", recipient, amount)
 }
 
-func (_ERC20 *ERC20Transactor) TransferRawTx(opts *bind.TransactOpts, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	return _ERC20.contract.RawTx(opts, "transfer", recipient, amount)
-}
-
 // Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
-// Will wait for tx receipt
 //
 // Solidity: function transfer(address recipient, uint256 amount) returns(bool)
-func (_ERC20 *ERC20Session) Transfer(recipient common.Address, amount *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_ERC20.transactionSession.Lock()
-	tx, err := _ERC20.Contract.Transfer(_ERC20.transactionSession.TransactOpts, recipient, amount)
-	if err != nil {
-		_ERC20.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_ERC20.transactionSession.TransactOpts.Nonce.Add(_ERC20.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_ERC20.transactionSession.Unlock()
-	receipt, err := _ERC20.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// Transfer returns raw transaction bound to the contract method 0xa9059cbb.
-//
-// Solidity: function transfer(address recipient, uint256 amount) returns(bool)
-func (_ERC20 *ERC20Session) TransferRawTx(recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	tx, err := _ERC20.Contract.TransferRawTx(_ERC20.transactionSession.TransactOpts, recipient, amount)
-	return tx, err
-}
-
-// Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function transfer(address recipient, uint256 amount) returns(bool)
-func (_ERC20 *ERC20Session) TransferAsync(receiptCh chan *types.ReceiptResult, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	_ERC20.transactionSession.Lock()
-	tx, err := _ERC20.Contract.Transfer(_ERC20.transactionSession.TransactOpts, recipient, amount)
-	if err != nil {
-		_ERC20.transactionSession.Unlock()
-		return nil, err
-	}
-	_ERC20.transactionSession.TransactOpts.Nonce.Add(_ERC20.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_ERC20.transactionSession.Unlock()
-	go func() {
-		receipt, err := _ERC20.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_ERC20 *ERC20Session) Transfer(recipient common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _ERC20.Contract.Transfer(&_ERC20.TransactOpts, recipient, amount)
 }
 
 // Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
 //
 // Solidity: function transfer(address recipient, uint256 amount) returns(bool)
-func (_ERC20 *ERC20TransactorSession) Transfer(wait bool, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
+func (_ERC20 *ERC20TransactorSession) Transfer(recipient common.Address, amount *big.Int) (*types.Transaction, error) {
 	return _ERC20.Contract.Transfer(&_ERC20.TransactOpts, recipient, amount)
 }
 
@@ -400,62 +313,17 @@ func (_ERC20 *ERC20Transactor) TransferFrom(opts *bind.TransactOpts, sender comm
 	return _ERC20.contract.Transact(opts, "transferFrom", sender, recipient, amount)
 }
 
-func (_ERC20 *ERC20Transactor) TransferFromRawTx(opts *bind.TransactOpts, sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	return _ERC20.contract.RawTx(opts, "transferFrom", sender, recipient, amount)
-}
-
 // TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
-// Will wait for tx receipt
 //
 // Solidity: function transferFrom(address sender, address recipient, uint256 amount) returns(bool)
-func (_ERC20 *ERC20Session) TransferFrom(sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, *types.Receipt, error) {
-	_ERC20.transactionSession.Lock()
-	tx, err := _ERC20.Contract.TransferFrom(_ERC20.transactionSession.TransactOpts, sender, recipient, amount)
-	if err != nil {
-		_ERC20.transactionSession.Unlock()
-		return nil, nil, err
-	}
-	_ERC20.transactionSession.TransactOpts.Nonce.Add(_ERC20.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_ERC20.transactionSession.Unlock()
-	receipt, err := _ERC20.transactionSession.WaitTransaction(tx)
-	return tx, receipt, err
-}
-
-// TransferFrom returns raw transaction bound to the contract method 0x23b872dd.
-//
-// Solidity: function transferFrom(address sender, address recipient, uint256 amount) returns(bool)
-func (_ERC20 *ERC20Session) TransferFromRawTx(sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	tx, err := _ERC20.Contract.TransferFromRawTx(_ERC20.transactionSession.TransactOpts, sender, recipient, amount)
-	return tx, err
-}
-
-// TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
-// Will not wait for tx, but put it to ch
-//
-// Solidity: function transferFrom(address sender, address recipient, uint256 amount) returns(bool)
-func (_ERC20 *ERC20Session) TransferFromAsync(receiptCh chan *types.ReceiptResult, sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	_ERC20.transactionSession.Lock()
-	tx, err := _ERC20.Contract.TransferFrom(_ERC20.transactionSession.TransactOpts, sender, recipient, amount)
-	if err != nil {
-		_ERC20.transactionSession.Unlock()
-		return nil, err
-	}
-	_ERC20.transactionSession.TransactOpts.Nonce.Add(_ERC20.transactionSession.TransactOpts.Nonce, big.NewInt(1))
-	_ERC20.transactionSession.Unlock()
-	go func() {
-		receipt, err := _ERC20.transactionSession.WaitTransaction(tx)
-		receiptCh <- &types.ReceiptResult{
-			Receipt: *receipt,
-			Err:     err,
-		}
-	}()
-	return tx, err
+func (_ERC20 *ERC20Session) TransferFrom(sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _ERC20.Contract.TransferFrom(&_ERC20.TransactOpts, sender, recipient, amount)
 }
 
 // TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
 //
 // Solidity: function transferFrom(address sender, address recipient, uint256 amount) returns(bool)
-func (_ERC20 *ERC20TransactorSession) TransferFrom(wait bool, sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
+func (_ERC20 *ERC20TransactorSession) TransferFrom(sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
 	return _ERC20.Contract.TransferFrom(&_ERC20.TransactOpts, sender, recipient, amount)
 }
 
@@ -609,6 +477,7 @@ func (_ERC20 *ERC20Filterer) ParseApproval(log types.Log) (*ERC20Approval, error
 	if err := _ERC20.contract.UnpackLog(event, "Approval", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -762,5 +631,6 @@ func (_ERC20 *ERC20Filterer) ParseTransfer(log types.Log) (*ERC20Transfer, error
 	if err := _ERC20.contract.UnpackLog(event, "Transfer", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }

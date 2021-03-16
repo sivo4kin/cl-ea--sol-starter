@@ -4,14 +4,14 @@
 package bindings
 
 import (
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strings"
-	//"github.com/sivo4kin/digiu-cross-chain/bind"
+
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -54,9 +54,9 @@ type IHexstringFilterer struct {
 // IHexstringSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type IHexstringSession struct {
-	Contract           *IHexstring // Generic contract binding to set the session for
-	transactionSession *bind.TransactSession
-	Address            common.Address
+	Contract     *IHexstring       // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
 // IHexstringCallerSession is an auto generated read-only Go binding around an Ethereum contract,
@@ -124,18 +124,6 @@ func NewIHexstringFilterer(address common.Address, filterer bind.ContractFiltere
 	return &IHexstringFilterer{contract: contract}, nil
 }
 
-func NewIHexstringSession(address common.Address, backend bind.ContractBackend, transactionSession *bind.TransactSession) (*IHexstringSession, error) {
-	IHexstringInstance, err := NewIHexstring(address, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &IHexstringSession{
-		Contract:           IHexstringInstance,
-		transactionSession: transactionSession,
-		Address:            address,
-	}, nil
-}
-
 // bindIHexstring binds a generic wrapper to an already deployed contract.
 func bindIHexstring(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(IHexstringABI))
@@ -149,7 +137,7 @@ func bindIHexstring(address common.Address, caller bind.ContractCaller, transact
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_IHexstring *IHexstringRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_IHexstring *IHexstringRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _IHexstring.Contract.IHexstringCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -168,7 +156,7 @@ func (_IHexstring *IHexstringRaw) Transact(opts *bind.TransactOpts, method strin
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_IHexstring *IHexstringCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_IHexstring *IHexstringCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _IHexstring.Contract.contract.Call(opts, result, method, params...)
 }
 
@@ -187,19 +175,24 @@ func (_IHexstring *IHexstringTransactorRaw) Transact(opts *bind.TransactOpts, me
 //
 // Solidity: function bytesToHexString(bytes value) view returns(string)
 func (_IHexstring *IHexstringCaller) BytesToHexString(opts *bind.CallOpts, value []byte) (string, error) {
-	var (
-		ret0 = new(string)
-	)
-	out := ret0
-	err := _IHexstring.contract.Call(opts, out, "bytesToHexString", value)
-	return *ret0, err
+	var out []interface{}
+	err := _IHexstring.contract.Call(opts, &out, "bytesToHexString", value)
+
+	if err != nil {
+		return *new(string), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(string)).(*string)
+
+	return out0, err
+
 }
 
 // BytesToHexString is a free data retrieval call binding the contract method 0x7d520c22.
 //
 // Solidity: function bytesToHexString(bytes value) view returns(string)
 func (_IHexstring *IHexstringSession) BytesToHexString(value []byte) (string, error) {
-	return _IHexstring.Contract.BytesToHexString(_IHexstring.transactionSession.CallOpts, value)
+	return _IHexstring.Contract.BytesToHexString(&_IHexstring.CallOpts, value)
 }
 
 // BytesToHexString is a free data retrieval call binding the contract method 0x7d520c22.

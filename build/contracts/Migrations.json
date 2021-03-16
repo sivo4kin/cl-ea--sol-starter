@@ -1515,12 +1515,12 @@
     "1337": {
       "events": {},
       "links": {},
-      "address": "0x92217b75cD0B100d3CCAc9d33d7A57AB41d1d1AE",
-      "transactionHash": "0x4c35f5729d5d2e6ae14ba390e673e3acc241d163cef777d16e48564655cb4197"
+      "address": "0xC16517788a9516dd0d4C409fE895b8ec0930cdb9",
+      "transactionHash": "0x898a5cfedacc7ccda6f41ecd73ba3ef08b4c569fab878653bdc641e0bc1c1d97"
     }
   },
   "schemaVersion": "3.3.3",
-  "updatedAt": "2021-03-10T15:57:23.794Z",
+  "updatedAt": "2021-03-15T12:40:10.950Z",
   "networkType": "ethereum",
   "devdoc": {
     "methods": {}

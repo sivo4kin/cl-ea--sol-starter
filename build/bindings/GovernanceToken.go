@@ -4,14 +4,14 @@
 package bindings
 
 import (
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strings"
-	//"github.com/sivo4kin/digiu-cross-chain/bind"
+
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 )
 
@@ -46,25 +46,6 @@ func DeployGovernanceToken(auth *bind.TransactOpts, backend bind.ContractBackend
 	return address, tx, &GovernanceToken{GovernanceTokenCaller: GovernanceTokenCaller{contract: contract}, GovernanceTokenTransactor: GovernanceTokenTransactor{contract: contract}, GovernanceTokenFilterer: GovernanceTokenFilterer{contract: contract}}, nil
 }
 
-// DeployGovernanceTokenSync deploys a new Ethereum contract and waits for receipt, binding an instance of GovernanceTokenSession to it.
-func DeployGovernanceTokenSync(session *bind.TransactSession, backend bind.ContractBackend) (*types.Transaction, *types.Receipt, *GovernanceTokenSession, error) {
-	parsed, err := abi.JSON(strings.NewReader(GovernanceTokenABI))
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	session.Lock()
-	address, tx, _, err := bind.DeployContract(session.TransactOpts, parsed, common.FromHex(GovernanceTokenBin), backend)
-	receipt, err := session.WaitTransaction(tx)
-	if err != nil {
-		session.Unlock()
-		return nil, nil, nil, err
-	}
-	session.TransactOpts.Nonce.Add(session.TransactOpts.Nonce, big.NewInt(1))
-	session.Unlock()
-	contractSession, err := NewGovernanceTokenSession(address, backend, session)
-	return tx, receipt, contractSession, err
-}
-
 // GovernanceToken is an auto generated Go binding around an Ethereum contract.
 type GovernanceToken struct {
 	GovernanceTokenCaller     // Read-only binding to the contract
@@ -90,9 +71,9 @@ type GovernanceTokenFilterer struct {
 // GovernanceTokenSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type GovernanceTokenSession struct {
-	Contract           *GovernanceToken // Generic contract binding to set the session for
-	transactionSession *bind.TransactSession
-	Address            common.Address
+	Contract     *GovernanceToken  // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
 // GovernanceTokenCallerSession is an auto generated read-only Go binding around an Ethereum contract,
@@ -160,18 +141,6 @@ func NewGovernanceTokenFilterer(address common.Address, filterer bind.ContractFi
 	return &GovernanceTokenFilterer{contract: contract}, nil
 }
 
-func NewGovernanceTokenSession(address common.Address, backend bind.ContractBackend, transactionSession *bind.TransactSession) (*GovernanceTokenSession, error) {
-	GovernanceTokenInstance, err := NewGovernanceToken(address, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &GovernanceTokenSession{
-		Contract:           GovernanceTokenInstance,
-		transactionSession: transactionSession,
-		Address:            address,
-	}, nil
-}
-
 // bindGovernanceToken binds a generic wrapper to an already deployed contract.
 func bindGovernanceToken(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
 	parsed, err := abi.JSON(strings.NewReader(GovernanceTokenABI))
@@ -185,7 +154,7 @@ func bindGovernanceToken(address common.Address, caller bind.ContractCaller, tra
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_GovernanceToken *GovernanceTokenRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_GovernanceToken *GovernanceTokenRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _GovernanceToken.Contract.GovernanceTokenCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -204,7 +173,7 @@ func (_GovernanceToken *GovernanceTokenRaw) Transact(opts *bind.TransactOpts, me
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_GovernanceToken *GovernanceTokenCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_GovernanceToken *GovernanceTokenCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _GovernanceToken.Contract.contract.Call(opts, result, method, params...)
 }
 
@@ -223,19 +192,24 @@ func (_GovernanceToken *GovernanceTokenTransactorRaw) Transact(opts *bind.Transa
 //
 // Solidity: function allowance(address , address ) view returns(uint256)
 func (_GovernanceToken *GovernanceTokenCaller) Allowance(opts *bind.CallOpts, arg0 common.Address, arg1 common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _GovernanceToken.contract.Call(opts, out, "allowance", arg0, arg1)
-	return *ret0, err
+	var out []interface{}
+	err := _GovernanceToken.contract.Call(opts, &out, "allowance", arg0, arg1)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // Allowance is a free data retrieval call binding the contract method 0xdd62ed3e.
 //
 // Solidity: function allowance(address , address ) view returns(uint256)
 func (_GovernanceToken *GovernanceTokenSession) Allowance(arg0 common.Address, arg1 common.Address) (*big.Int, error) {
-	return _GovernanceToken.Contract.Allowance(_GovernanceToken.transactionSession.CallOpts, arg0, arg1)
+	return _GovernanceToken.Contract.Allowance(&_GovernanceToken.CallOpts, arg0, arg1)
 }
 
 // Allowance is a free data retrieval call binding the contract method 0xdd62ed3e.
@@ -249,19 +223,24 @@ func (_GovernanceToken *GovernanceTokenCallerSession) Allowance(arg0 common.Addr
 //
 // Solidity: function balanceOf(address ) view returns(uint256)
 func (_GovernanceToken *GovernanceTokenCaller) BalanceOf(opts *bind.CallOpts, arg0 common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _GovernanceToken.contract.Call(opts, out, "balanceOf", arg0)
-	return *ret0, err
+	var out []interface{}
+	err := _GovernanceToken.contract.Call(opts, &out, "balanceOf", arg0)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
 //
 // Solidity: function balanceOf(address ) view returns(uint256)
 func (_GovernanceToken *GovernanceTokenSession) BalanceOf(arg0 common.Address) (*big.Int, error) {
-	return _GovernanceToken.Contract.BalanceOf(_GovernanceToken.transactionSession.CallOpts, arg0)
+	return _GovernanceToken.Contract.BalanceOf(&_GovernanceToken.CallOpts, arg0)
 }
 
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
@@ -275,19 +254,24 @@ func (_GovernanceToken *GovernanceTokenCallerSession) BalanceOf(arg0 common.Addr
 //
 // Solidity: function decimals() view returns(uint8)
 func (_GovernanceToken *GovernanceTokenCaller) Decimals(opts *bind.CallOpts) (uint8, error) {
-	var (
-		ret0 = new(uint8)
-	)
-	out := ret0
-	err := _GovernanceToken.contract.Call(opts, out, "decimals")
-	return *ret0, err
+	var out []interface{}
+	err := _GovernanceToken.contract.Call(opts, &out, "decimals")
+
+	if err != nil {
+		return *new(uint8), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint8)).(*uint8)
+
+	return out0, err
+
 }
 
 // Decimals is a free data retrieval call binding the contract method 0x313ce567.
 //
 // Solidity: function decimals() view returns(uint8)
 func (_GovernanceToken *GovernanceTokenSession) Decimals() (uint8, error) {
-	return _GovernanceToken.Contract.Decimals(_GovernanceToken.transactionSession.CallOpts)
+	return _GovernanceToken.Contract.Decimals(&_GovernanceToken.CallOpts)
 }
 
 // Decimals is a free data retrieval call binding the contract method 0x313ce567.
@@ -301,19 +285,24 @@ func (_GovernanceToken *GovernanceTokenCallerSession) Decimals() (uint8, error) 
 //
 // Solidity: function name() view returns(string)
 func (_GovernanceToken *GovernanceTokenCaller) Name(opts *bind.CallOpts) (string, error) {
-	var (
-		ret0 = new(string)
-	)
-	out := ret0
-	err := _GovernanceToken.contract.Call(opts, out, "name")
-	return *ret0, err
+	var out []interface{}
+	err := _GovernanceToken.contract.Call(opts, &out, "name")
+
+	if err != nil {
+		return *new(string), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(string)).(*string)
+
+	return out0, err
+
 }
 
 // Name is a free data retrieval call binding the contract method 0x06fdde03.
 //
 // Solidity: function name() view returns(string)
 func (_GovernanceToken *GovernanceTokenSession) Name() (string, error) {
-	return _GovernanceToken.Contract.Name(_GovernanceToken.transactionSession.CallOpts)
+	return _GovernanceToken.Contract.Name(&_GovernanceToken.CallOpts)
 }
 
 // Name is a free data retrieval call binding the contract method 0x06fdde03.
@@ -327,19 +316,24 @@ func (_GovernanceToken *GovernanceTokenCallerSession) Name() (string, error) {
 //
 // Solidity: function symbol() view returns(string)
 func (_GovernanceToken *GovernanceTokenCaller) Symbol(opts *bind.CallOpts) (string, error) {
-	var (
-		ret0 = new(string)
-	)
-	out := ret0
-	err := _GovernanceToken.contract.Call(opts, out, "symbol")
-	return *ret0, err
+	var out []interface{}
+	err := _GovernanceToken.contract.Call(opts, &out, "symbol")
+
+	if err != nil {
+		return *new(string), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(string)).(*string)
+
+	return out0, err
+
 }
 
 // Symbol is a free data retrieval call binding the contract method 0x95d89b41.
 //
 // Solidity: function symbol() view returns(string)
 func (_GovernanceToken *GovernanceTokenSession) Symbol() (string, error) {
-	return _GovernanceToken.Contract.Symbol(_GovernanceToken.transactionSession.CallOpts)
+	return _GovernanceToken.Contract.Symbol(&_GovernanceToken.CallOpts)
 }
 
 // Symbol is a free data retrieval call binding the contract method 0x95d89b41.
@@ -353,19 +347,24 @@ func (_GovernanceToken *GovernanceTokenCallerSession) Symbol() (string, error) {
 //
 // Solidity: function totalSupply() view returns(uint256)
 func (_GovernanceToken *GovernanceTokenCaller) TotalSupply(opts *bind.CallOpts) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _GovernanceToken.contract.Call(opts, out, "totalSupply")
-	return *ret0, err
+	var out []interface{}
+	err := _GovernanceToken.contract.Call(opts, &out, "totalSupply")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // TotalSupply is a free data retrieval call binding the contract method 0x18160ddd.
 //
 // Solidity: function totalSupply() view returns(uint256)
 func (_GovernanceToken *GovernanceTokenSession) TotalSupply() (*big.Int, error) {
-	return _GovernanceToken.Contract.TotalSupply(_GovernanceToken.transactionSession.CallOpts)
+	return _GovernanceToken.Contract.TotalSupply(&_GovernanceToken.CallOpts)
 }
 
 // TotalSupply is a free data retrieval call binding the contract method 0x18160ddd.
@@ -525,6 +524,7 @@ func (_GovernanceToken *GovernanceTokenFilterer) ParseApproval(log types.Log) (*
 	if err := _GovernanceToken.contract.UnpackLog(event, "Approval", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
 
@@ -678,5 +678,6 @@ func (_GovernanceToken *GovernanceTokenFilterer) ParseTransfer(log types.Log) (*
 	if err := _GovernanceToken.contract.UnpackLog(event, "Transfer", log); err != nil {
 		return nil, err
 	}
+	event.Raw = log
 	return event, nil
 }
