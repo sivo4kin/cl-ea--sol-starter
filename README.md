@@ -1,2 +1,3 @@
-# digiu-cross-chain
-cross-chain bridge for Dexpool
+# Chainlink external adapter starter with solidity contracts integration
+
+

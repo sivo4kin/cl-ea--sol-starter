@@ -4,9 +4,11 @@ import (
 	"context"
 	"github.com/linkpoolio/bridges"
 	"github.com/sirupsen/logrus"
+	adapter_service "github.com/sivo4kin/digiu-cross-chain/adapter-service"
 	"github.com/sivo4kin/digiu-cross-chain/config"
 	"github.com/sivo4kin/digiu-cross-chain/ticker-adapter"
 	"log"
+	"net/http"
 )
 
 func main() {
@@ -34,7 +36,14 @@ func main() {
 	logrus.Print("STARTED NEW BRIDGE")
 	srv.Start(config.Config.PORT)
 	logrus.Print("STARTED")
+	router := adapter_service.NewRouter()
+	log.Fatal(http.ListenAndServe(":3000", router))
 }
+
+
+
+
+
 
 /*
 func (r *Router) HandleFunc(path string, f func(http.ResponseWriter,
