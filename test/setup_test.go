@@ -11,7 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/sirupsen/logrus"
-	"github.com/sivo4kin/digiu-cross-chain/bindings"
+	"github.com/sivo4kin/ea-starter/wrappers"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"math/big"
@@ -23,19 +23,19 @@ type DexPoolTestSuite struct {
 	suite.Suite
 	Modifier    Bytes32
 	Sim         *backends.SimulatedBackend
-	MockDexPool *bindings.MockDexPool
-	//LinkToken		*bindings.LinkToken
-	Oracle           *bindings.BridgeOracleRequest
+	MockDexPool *wrappers.MockDexPool
+	//LinkToken		*wrappers.LinkToken
+	Oracle           *wrappers.BridgeOracleRequest
 	ContractAdresses map[string]common.Address
 }
 
-// newIdentity returns a go-ethereum abstraction of an ethereum account for
+/*// newIdentity returns a go-ethereum abstraction of an ethereum account for
 // interacting with contract golang wrappers
 func newIdentity(t *testing.T) *bind.TransactOpts {
 	key, err := crypto.GenerateKey()
 	require.NoError(t, err, "failed to generate ethereum identity")
 	return MustNewSimulatedBackendKeyedTransactor(t, key)
-}
+}*/
 
 //func SetupTest(t *testing.T) (s *DexPoolTestSuite) {
 //	s =  &DexPoolTestSuite{}
@@ -44,7 +44,7 @@ func newIdentity(t *testing.T) *bind.TransactOpts {
 //}
 
 //func deployMockDexPoll(s *DexPoolTestSuite) {
-//	mockDexpPool, _, rolemodel, err := bindings.DeployDexPool(
+//	mockDexpPool, _, rolemodel, err := wrappers.DeployDexPool(
 //		s.MC.Admin.IdAccount,
 //		s.Sim,
 //		common.Address{},
@@ -54,7 +54,7 @@ func newIdentity(t *testing.T) *bind.TransactOpts {
 //
 //	s.Sim.Commit()
 //	s.RolemodelI = rolemodel
-//	s.RolemodelMC = s.RolemodelI.(*bindings.RoleModel)
+//	s.RolemodelMC = s.RolemodelI.(*wrappers.RoleModel)
 //}
 
 func Test(t *testing.T) {
@@ -65,7 +65,7 @@ func Test(t *testing.T) {
 	gasLimit := uint64(100000000)
 	backend := backends.NewSimulatedBackend(genesisData, gasLimit)
 	require.NotNil(t, backend)
-	addr, _, dToken, err := bindings.DeployDigiUToken(auth, backend)
+	addr, _, dToken, err := wrappers.DeployDigiUToken(auth, backend)
 	require.NoError(t, err)
 	require.NotNil(t, addr)
 	logrus.Printf("Token deployed 0x%x", addr)
@@ -74,7 +74,7 @@ func Test(t *testing.T) {
 	//_, err = verifier.RandomValueFromVRFProof(nil, proof[:])
 	require.NoError(t, err)
 	logrus.Printf("balance %d", bal)
-	test, _, testContract, err := bindings.DeployTest(auth, backend)
+	test, _, testContract, err := wrappers.DeployTest(auth, backend)
 	require.NoError(t, err)
 	require.NotNil(t, test)
 	_, err = testContract.SetTest(auth, big.NewInt(30))

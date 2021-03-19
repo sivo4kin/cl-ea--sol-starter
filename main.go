@@ -4,9 +4,9 @@ import (
 	"context"
 	"github.com/linkpoolio/bridges"
 	"github.com/sirupsen/logrus"
-	"github.com/sivo4kin/digiu-cross-chain/config"
-	test_get "github.com/sivo4kin/digiu-cross-chain/test-get"
-	"github.com/sivo4kin/digiu-cross-chain/ticker-adapter"
+	test_get "github.com/sivo4kin/ea-starter/adapters/test-get"
+	"github.com/sivo4kin/ea-starter/adapters/ticker-adapter"
+	"github.com/sivo4kin/ea-starter/config"
 	"log"
 )
 

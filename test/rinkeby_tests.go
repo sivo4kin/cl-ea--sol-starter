@@ -6,7 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/sirupsen/logrus"
-	"github.com/sivo4kin/digiu-cross-chain/bindings"
+	"github.com/sivo4kin/ea-starter/wrappers"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -15,7 +15,7 @@ func TestRinkebyPool(t *testing.T) {
 	conn, err := ethclient.Dial("wss://rinkeby.infura.io/ws/v3/1f520f603c094850aafcb11291818e29")
 	require.NoError(t, err)
 	// Current rinkeby pool address 0x8C2e2b076ccd2d1654de5A094a8626ADa609b415
-	poolContract, err := bindings.NewDexPool(common.HexToAddress("0x8C2e2b076ccd2d1654de5A094a8626ADa609b415"), conn)
+	poolContract, err := wrappers.NewDexPool(common.HexToAddress("0x8C2e2b076ccd2d1654de5A094a8626ADa609b415"), conn)
 	require.NoError(t, err)
 
 	//tx, err := poolContract.SetTest(&bind.TransactOpts{}, big.NewInt(99))
@@ -37,7 +37,7 @@ func TestRinkebyPool(t *testing.T) {
 	myContratcAddress, err := poolContract.MyContract(&bind.CallOpts{})
 	require.NoError(t, err)
 	logrus.Printf("Pool %s myContract Address: %s", name, myContratcAddress)
-	myContract, err := bindings.NewMyContract(myContratcAddress, conn)
+	myContract, err := wrappers.NewMyContract(myContratcAddress, conn)
 	require.NoError(t, err)
 	var job [32]byte
 	var jobs [][32]byte

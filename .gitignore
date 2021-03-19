@@ -4,7 +4,7 @@
 *.dll
 *.so
 *.dylib
-build/bindings/*.go
+build/wrappers/*.go
 # Test binary, built with `go test -c`
 *.test
 
@@ -13,5 +13,5 @@ build/bindings/*.go
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-build/bindings/*.go
+build/wrappers/*.go
 /cltest/

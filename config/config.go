@@ -28,7 +28,8 @@ type AppConfig struct {
 func ReadConfig() error {
 	viper.SetConfigName("my") // name of config file (without extension)
 	viper.SetEnvPrefix("cross-chain")
-	viper.SetConfigType("yaml")         // REQUIRED if the config file does not have the extension in the name
+	viper.SetConfigType("yaml") // REQUIRED if the config file does not have the extension in the name
+	viper.AddConfigPath("../config")
 	viper.AddConfigPath("../../config") // path to look for the config file in
 	viper.AddConfigPath("$HOME")        // call multiple times to add many search paths
 	viper.AddConfigPath(".")            // optionally look for config in the working directory
@@ -48,6 +49,7 @@ func LoadConfig(configPaths ...string) error {
 	v.SetEnvPrefix("cross-chain")
 	v.AutomaticEnv()
 	v.AddConfigPath("../")
+	v.AddConfigPath("./config")
 	v.AddConfigPath("../config")
 	v.AddConfigPath("../../config")
 	for _, path := range configPaths {

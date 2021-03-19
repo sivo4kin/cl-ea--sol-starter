@@ -1,12 +1,20 @@
-# Chainlink external adapter starter with solidity contracts integration
+## Chainlink external adapter starter
 
-````
+
+```
 make
+```
+
+```
 make test
-make build
+```
+
+
+```
 make start
-````
+```
 
 
-``curl -X POST -H 'Content-Type: application/json' -d '{}' http://localhost:9999/tick``
-
+```
+curl -X POST -H 'Content-Type: application/json' -d '{}' http://localhost:9999/tick
+```
