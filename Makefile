@@ -14,8 +14,6 @@ wrappers:
 	make npm
 	cd truffle;npx truffle build;
 	go run ./wrappers-builder --json truffle/build/contracts --pkg wrappers --out wrappers
-	#build/solc/solc-static-linux $(CONTRACTSRC)
-#	go run ./build --sol truffle/contracts --pkg wrappers --out wrappers
 
 clean:
 	rm ./wrappers/*.go || rm ./truffle/build/contracts/*.json || rm ./ea-starter ./wrappers-builder/wrappers-builder
