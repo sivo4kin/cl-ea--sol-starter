@@ -3,7 +3,7 @@ GOBUILD=go build
 .PHONY: all test clean wrappers build
 
 wrappers:
-	cd truffle;npx truffle build
+	cd truffle;npm i;npx truffle build
 	go run ./build --json truffle/build/contracts --pkg wrappers --out wrappers
 	#build/solc/solc-static-linux $(CONTRACTSRC)
 #	go run ./build --sol truffle/contracts --pkg wrappers --out wrappers
