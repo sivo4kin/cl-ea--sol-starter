@@ -1,10 +1,17 @@
 .DEFAULT_GOAL := all
 
+MODULES_DIR = 'truffle/node_modules'
+
+npm:
+	if ! [ -d $(MODULES_DIR) ]; then cd truffle;npm i;fi
+
+
 GOBUILD=go build
 
 .PHONY: all test clean wrappers build
 
 wrappers:
+	make npm
 	cd truffle;npx truffle build;
 	go run ./wrappers-builder --json truffle/build/contracts --pkg wrappers --out wrappers
 	#build/solc/solc-static-linux $(CONTRACTSRC)
@@ -22,7 +29,7 @@ start:
 
 test:
 	go test ./test -v
-all: clean wrappers build start
+all:    wrappers build start
 
 CONTRACTSRC=$(shell find truffle/contracts -name '*.sol' || true)
 

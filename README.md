@@ -2,12 +2,12 @@
  
 
 
-###clean artefacts
+### clean artefacts
 ```
 make clean
 ```
 
-### buil all and start server
+### build all and start server
 
 ```
 make all
