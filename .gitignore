@@ -4,7 +4,8 @@
 *.dll
 *.so
 *.dylib
-build/wrappers/*.go
+wrappers/*.go
+truffle/build/contracts/*.json
 # Test binary, built with `go test -c`
 *.test
 
@@ -13,5 +14,3 @@ build/wrappers/*.go
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-build/wrappers/*.go
-/cltest/

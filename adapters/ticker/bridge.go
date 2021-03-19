@@ -1,4 +1,4 @@
-package ticker_adapter
+package ticker
 
 import (
 	"github.com/ethereum/go-ethereum/ethclient"

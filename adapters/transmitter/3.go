@@ -1,4 +1,4 @@
-package transmitter_adapter
+package transmitter
 
 import (
 	"context"

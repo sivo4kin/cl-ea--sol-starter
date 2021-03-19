@@ -5,7 +5,7 @@ import (
 	"github.com/linkpoolio/bridges"
 	"github.com/sirupsen/logrus"
 	test_get "github.com/sivo4kin/ea-starter/adapters/test-get"
-	"github.com/sivo4kin/ea-starter/adapters/ticker-adapter"
+	"github.com/sivo4kin/ea-starter/adapters/ticker"
 	"github.com/sivo4kin/ea-starter/config"
 	"log"
 )
@@ -21,7 +21,7 @@ func main() {
 	logrus.Print("CONFIG\n", config.Config, "\nEND")
 	logrus.Print("STARTING")
 	var bridgesList []bridges.Bridge
-	ad, err := ticker_adapter.NewTicker(config.Config)
+	ad, err := ticker.NewTicker(config.Config)
 	if err != nil {
 		logrus.Fatal(err)
 	}

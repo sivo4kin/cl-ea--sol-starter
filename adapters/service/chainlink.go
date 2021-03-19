@@ -1,4 +1,4 @@
-package adapter_service
+package service
 
 import (
 	null "gopkg.in/guregu/null.v3"

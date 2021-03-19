@@ -1,17 +1,20 @@
+.DEFAULT_GOAL := all
+
 GOBUILD=go build
 
 .PHONY: all test clean wrappers build
 
 wrappers:
-	cd truffle;npm i;npx truffle build
-	go run ./build --json truffle/build/contracts --pkg wrappers --out wrappers
+	cd truffle;npx truffle build;
+	go run ./wrappers-builder --json truffle/build/contracts --pkg wrappers --out wrappers
 	#build/solc/solc-static-linux $(CONTRACTSRC)
 #	go run ./build --sol truffle/contracts --pkg wrappers --out wrappers
 
 clean:
-	rm ./wrappers/*.go || rm ./truffle/build/contracts/*.json || rm ./ea-starter ./build/build
+	rm ./wrappers/*.go || rm ./truffle/build/contracts/*.json || rm ./ea-starter ./wrappers-builder/wrappers-builder
 
 build:
+	cd ./wrappers-builder;$(GOBUILD)
 	$(GOBUILD)
 
 start:
@@ -19,7 +22,7 @@ start:
 
 test:
 	go test ./test -v
-all: clean build wrappers start
+all: clean wrappers build start
 
 CONTRACTSRC=$(shell find truffle/contracts -name '*.sol' || true)
 

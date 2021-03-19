@@ -1,4 +1,4 @@
-package transmitter_adapter
+package transmitter
 
 import (
 	"github.com/ethereum/go-ethereum/ethclient"
