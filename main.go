@@ -4,14 +4,16 @@ import (
 	"context"
 	"github.com/linkpoolio/bridges"
 	"github.com/sirupsen/logrus"
-	adapter_service "github.com/sivo4kin/digiu-cross-chain/adapter-service"
 	"github.com/sivo4kin/digiu-cross-chain/config"
+	test_get "github.com/sivo4kin/digiu-cross-chain/test-get"
 	"github.com/sivo4kin/digiu-cross-chain/ticker-adapter"
 	"log"
-	"net/http"
 )
 
 func main() {
+	//router := adapter_service.NewRouter()
+	//log.Fatal(http.ListenAndServe(":3000", router))
+
 	err := config.LoadConfig(".")
 	if err != nil {
 		log.Fatal(err)
@@ -27,6 +29,13 @@ func main() {
 	if err != nil {
 		logrus.Fatal(err)
 	}
+
+	tg, err := test_get.NewTestGet(config.Config)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	bridgesList = append(bridgesList, tg)
 	bridgesList = append(bridgesList, ad)
 	chainId, err := ad.CLient.ChainID(context.Background())
 	logrus.Printf("CHAIN ID %d", chainId)
@@ -36,34 +45,5 @@ func main() {
 	logrus.Print("STARTED NEW BRIDGE")
 	srv.Start(config.Config.PORT)
 	logrus.Print("STARTED")
-	router := adapter_service.NewRouter()
-	log.Fatal(http.ListenAndServe(":3000", router))
+
 }
-
-
-
-
-
-
-/*
-func (r *Router) HandleFunc(path string, f func(http.ResponseWriter,
-	*http.Request)) *Route {
-	return r.NewRoute().Path(path).HandlerFunc(f)
-}
-
-*/
-
-/*func main() {
-	r := mux.NewRouter()
-	r.HandleFunc("/home", HomeHandler)
-
-	http.Handle("/", r)
-}
-*/
-
-// HandleFunc registers a new route with a matcher for the URL path.
-// See Route.Path() and Route.HandlerFunc().
-//func (r *mux.Router) HandleFunc(path string, f func(http.ResponseWriter,
-//	*http.Request)) *mux.Route {
-//	return r.NewRoute().Path(path).HandlerFunc(f)
-//}
