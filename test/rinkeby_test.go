@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/sivo4kin/ea-starter/wrappers"
 	"github.com/stretchr/testify/require"
+	"math/big"
 	"testing"
 )
 
@@ -18,9 +19,9 @@ func TestRinkebyPool(t *testing.T) {
 	poolContract, err := wrappers.NewDexPool(common.HexToAddress("0x8C2e2b076ccd2d1654de5A094a8626ADa609b415"), conn)
 	require.NoError(t, err)
 
-	//tx, err := poolContract.SetTest(&bind.TransactOpts{}, big.NewInt(99))
-	//require.NoError(t, err)
-	//logrus.Print("TRANSACTION", tx)
+	tx, err := poolContract.SetTest(&bind.TransactOpts{}, big.NewInt(99))
+	require.NoError(t, err)
+	logrus.Print("TRANSACTION", tx)
 
 	// this is represents of bytes memory out = abi.encodeWithSelector(bytes4(keccak256(bytes('_setTest(uint256)'))), amount);
 	data := "0xfec102800000000000000000000000000000000000000000000000008ac7230489e80000"

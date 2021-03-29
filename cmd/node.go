@@ -14,6 +14,7 @@ import (
 	"github.com/sivo4kin/ea-starter/libp2p/knockingtls"
 	myrpc "github.com/sivo4kin/ea-starter/libp2p/myrpc"
 	"net/http"
+	"os"
 )
 
 type Node struct {
@@ -31,6 +32,12 @@ type Node struct {
 type addrList []multiaddr.Multiaddr
 
 func NewNode() (n *Node, err error) {
+	dir, err := os.Getwd()
+	if err != nil {
+		logrus.Warn(err)
+	}
+	logrus.Printf("started in directory %s", dir)
+
 	err = config.LoadConfig(".")
 	if err != nil {
 		return
@@ -51,7 +58,7 @@ func NewNode() (n *Node, err error) {
 	n.Router = NewRouter()
 
 	go func() {
-		err = dht.NewDHTBootPeer()
+		err = dht.NewDHTBootPeer(dir + config.Config.ECDSA_KEY)
 		if err != nil {
 			return
 		}
@@ -70,7 +77,7 @@ func (n Node) strtKnokinkTLS() {
 }
 
 func (n Node) NewPeer() (err error) {
-	h, err := myrpc.NewRSAKeysHost(n.Ctx, "/home/syi/src/digiu-cross-chain/keys/srv1-rsa.key", 3456)
+	h, err := myrpc.NewRSAKeysHost(n.Ctx, "./keys/srv1-rsa.key", 3456)
 	logrus.Printf("Host ID: %s", h.ID().Pretty())
 	logrus.Printf("Connect to me on:")
 	for _, addr := range h.Addrs() {

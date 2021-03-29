@@ -120,7 +120,7 @@ func NewKnokingTLSPeer(c PeerConfig) (*СoncretePeer, error) {
 }
 
 func RunKnokingTLSPeer() {
-	priv, err := keys.ReadHostKey("/home/syi/src/digiu-cross-chain/keys/srv1-ed25519.key")
+	priv, err := keys.ReadHostKey("./keys/srv1-ed25519.key")
 	if err != nil {
 		panic(err)
 	}
