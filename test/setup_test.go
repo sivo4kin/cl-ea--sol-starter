@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
-	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
 	"github.com/ethereum/go-ethereum/common"
@@ -106,7 +105,7 @@ func Test(t *testing.T) {
 	buf := bytes.NewReader(slice)
 	err = binary.Read(buf, binary.LittleEndian, &pi)
 	require.NoError(t, err)
-	log.Print(pi)
+	logrus.Print(pi)
 	logrus.Print("LowLevelGet ", pi)
 
 }

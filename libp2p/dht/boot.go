@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func NewDHTBootPeer() (err error) {
+func NewDHTBootPeer(key string) (err error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -26,7 +26,7 @@ func NewDHTBootPeer() (err error) {
 
 	//настроить host который option
 	listenAddr := libp2p.ListenAddrStrings(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", port))
-	privKey, pubkey, err := keys.ReadKeys("/home/syi/src/digiu-cross-chain/keys/srv3-ecdsa.key", "/home/syi/src/digiu-cross-chain/keys/srv3-rsa.key")
+	privKey, pubkey, err := keys.ReadKeys("./keys/srv3-ecdsa.key", "./keys/srv3-rsa.key")
 	if err != nil {
 		logrus.Errorf("ERROR GETTING CERT %v", err)
 		//panic(err)

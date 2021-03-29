@@ -23,6 +23,7 @@ type AppConfig struct {
 	CHAIN_2_URL             string
 	INFURA_URL              string
 	TickerInterval          time.Duration
+	ECDSA_KEY               string
 }
 
 func ReadConfig() error {
