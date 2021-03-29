@@ -1,4 +1,4 @@
-package service
+package chainlink_integration
 
 import (
 	null "gopkg.in/guregu/null.v3"
@@ -94,7 +94,7 @@ func GetBigInt(cl Chainlink) RunResult {
 // Pass in '{"other": "GetData"}' to retrieve the value "10000"
 // Pass in '{"other": "GetBigInt"}' to retrieve the value "20000"
 // Pass in '{"other": "GetRestData"}' to retrieve the value "30000"
-func GetInputData(cl Chainlink) RunResult {
+func GetMockData(cl Chainlink) RunResult {
 	params := cl.Data
 	datas := []Data{
 		Data{

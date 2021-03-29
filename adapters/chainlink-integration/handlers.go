@@ -1,4 +1,4 @@
-package service
+package chainlink_integration
 
 import (
 	"bytes"
@@ -136,7 +136,7 @@ func ReturnBigInt(w http.ResponseWriter, r *http.Request) {
 // input and output JSON for troubleshooting.
 func InputDataExample(w http.ResponseWriter, r *http.Request) {
 	cl := RequestData(w, r)
-	WriteData(w, GetInputData(cl))
+	WriteData(w, GetMockData(cl))
 }
 
 // ReturnError returns an error back to the caller

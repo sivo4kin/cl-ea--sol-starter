@@ -43,7 +43,7 @@ func GetBlocks2() error {
 		log.Fatal(err)
 		return err
 	}
-	fmt.Printf("current block %s", header.Number.String())
+	log.Printf("current block %s", header.Number.String())
 	return nil
 }
 

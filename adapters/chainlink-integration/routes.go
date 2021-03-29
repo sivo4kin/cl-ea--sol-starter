@@ -1,4 +1,4 @@
-package service
+package chainlink_integration
 
 import (
 	"log"

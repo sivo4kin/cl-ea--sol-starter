@@ -1,10 +1,12 @@
 package test_get
 
 import (
+	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/linkpoolio/bridges"
+	"github.com/sirupsen/logrus"
 	"github.com/sivo4kin/ea-starter/config"
 	"github.com/sivo4kin/ea-starter/wrappers"
 )
@@ -37,8 +39,7 @@ func (ap *TestGet) Opts() *bridges.Opts {
 }
 
 type Output struct {
-	ChainId  string `json:"chainId"`
-	BlockNum string `json:"blockNum"`
+	DataFromContract string `json:"data"`
 }
 
 func (brg *TestGet) Run(helper *bridges.Helper) (interface{}, error) {
@@ -46,19 +47,23 @@ func (brg *TestGet) Run(helper *bridges.Helper) (interface{}, error) {
 	return brg.GeFromContract(data)
 }
 
-func (brg *TestGet) GeFromContract(data string) (interface{}, error) {
+func (brg *TestGet) GeFromContract(data string) (out Output, err error) {
+	log.Printf("START get from contract %s", data)
 	//poolContract, err := wrappers.NewDexPool(common.HexToAddress(brg.Config.POOL_ADDRESS), brg.CLient)
 	poolContract, err := wrappers.NewDexPool(common.HexToAddress("0x8C2e2b076ccd2d1654de5A094a8626ADa609b415"), brg.CLient)
 	if err != nil {
-		return nil, err
+		return
 	}
 	data = "0x49eba8f7"
-	qwe, err := poolContract.LowLevelGet(&bind.CallOpts{}, []byte(data))
-	//qwe , err := poolContract.LowLevelGet("", brg.CLient)
+	dataFrom, err := poolContract.LowLevelGet(&bind.CallOpts{}, []byte(data))
 	if err != nil {
-		return nil, err
+		return
 	}
-	return qwe, nil
+	log.Printf("get from contract %v", dataFrom)
+	out = Output{
+		DataFromContract: fmt.Sprintf("%v", dataFrom),
+	}
+	return
 }
 
 func NewTestGet(cfg config.AppConfig) (a *TestGet, err error) {

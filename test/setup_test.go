@@ -106,7 +106,7 @@ func Test(t *testing.T) {
 	buf := bytes.NewReader(slice)
 	err = binary.Read(buf, binary.LittleEndian, &pi)
 	require.NoError(t, err)
-	fmt.Print(pi)
+	log.Print(pi)
 	logrus.Print("LowLevelGet ", pi)
 
 }
