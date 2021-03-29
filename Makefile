@@ -18,7 +18,7 @@ build:
 	cd ./cmd;$(GOBUILD)
 
 start:
-	./cmd/cmd
+	./node
 
 
 testbls:
