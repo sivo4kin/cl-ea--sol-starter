@@ -17,9 +17,9 @@ wrappers: npm
 clean:
 	rm ./wrappers/*.go || rm ./truffle/build/contracts/*.json || rm ./ea-starter ./wrappers-builder/wrappers-builder || rm keys/*.key || rm logs/*.log
 
-build:
+build: keys
 	cd ./wrappers-builder;$(GOBUILD)
-	cd ./cmd;$(GOBUILD)
+	go build -o node  cmd/node.go
 
 start:
 	./node
@@ -33,7 +33,7 @@ testbls:
 test:
 	go test ./test -v
 
-all: clean wrappers build start
+all: build start
 
 CONTRACTSRC=$(shell find truffle/contracts -name '*.sol' || true)
 
