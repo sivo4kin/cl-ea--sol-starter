@@ -4,11 +4,15 @@ GOBUILD=go build
 
 .PHONY: all test clean wrappers build keys
 
-wrappers:
+npm:
+	@if [ -d truffle/node_modules ]; then \
+  			echo "installed"; \
+  			else \
+  			cd truffle;npm i;fi
+
+wrappers: npm
 	cd truffle;npx truffle build;
 	go run ./wrappers-builder --json truffle/build/contracts --pkg wrappers --out wrappers
-	#build/solc/solc-static-linux $(CONTRACTSRC)
-#	go run ./build --sol truffle/contracts --pkg wrappers --out wrappers
 
 clean:
 	rm ./wrappers/*.go || rm ./truffle/build/contracts/*.json || rm ./ea-starter ./wrappers-builder/wrappers-builder || rm keys/*.key || rm logs/*.log
@@ -40,14 +44,7 @@ solc:
 	mkdir -p compilers/solc
 	wget -O compilers/solc/solc-static-linux $(SOLCURL)/solc-static-linux
 keys:
-	go run key/keygen.go --prefix tls1
-	go run key/keygen.go --prefix tls2
-	go run key/keygen.go --prefix srv1
-	go run key/keygen.go --prefix srv2
 	go run key/keygen.go --prefix srv3
-	go run key/keygen.go --prefix cl1
-	go run key/keygen.go --prefix dht1
-	go run key/keygen.go --prefix dht2
 
 
 
