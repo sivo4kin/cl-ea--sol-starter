@@ -8,6 +8,8 @@ ADD ./adapter/p2p-bridge .
 
 RUN go mod download
 
+RUN make keys
+
 RUN CGO_ENABLED=1 GOOS=linux \
     go build -ldflags '-extldflags "-static"' -o bridge cmd/node.go
 
