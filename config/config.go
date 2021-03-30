@@ -24,6 +24,7 @@ type AppConfig struct {
 	INFURA_URL              string
 	TickerInterval          time.Duration
 	ECDSA_KEY               string
+	P2P_PORT                int
 }
 
 func ReadConfig() error {

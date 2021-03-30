@@ -19,7 +19,8 @@ clean:
 
 build: keys
 	cd ./wrappers-builder;$(GOBUILD)
-	go build -o node  cmd/node.go
+	#rm bridge
+	go build -o bridge  cmd/node.go
 
 start: build
 	./node

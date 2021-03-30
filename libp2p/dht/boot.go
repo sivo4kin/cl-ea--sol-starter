@@ -15,14 +15,9 @@ import (
 	"time"
 )
 
-func NewDHTBootPeer(key string) (err error) {
+func NewDHTBootPeer(key string, port int) (err error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
-	var (
-		port int
-	)
-	setFlags(ctx, &port)
 
 	//настроить host который option
 	listenAddr := libp2p.ListenAddrStrings(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", port))
