@@ -114,13 +114,13 @@ func (n Node) strtKnokinkTLS() {
 
 func (n Node) NewBridge() (srv *bridges.Server) {
 	var bridgesList []bridges.Bridge
-	ad, err := bridge.NewEthHealth(n.EthClient_1, "Health Chain 1", "health1", bridge.First)
+	ad, err := bridge.NewEthHealth(n.EthClient_1, "Health Chain 1", "health1", bridge.HealthFirst)
 	if err != nil {
 		logrus.Fatal(err)
 		return
 	}
 
-	ad2, err := bridge.NewEthHealth(n.EthClient_2, "Health Chain 2", "health2", bridge.Second)
+	ad2, err := bridge.NewEthHealth(n.EthClient_2, "Health Chain 2", "health2", bridge.HealthSecond)
 	if err != nil {
 		logrus.Fatal(err)
 		return
