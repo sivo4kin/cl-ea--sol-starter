@@ -7,22 +7,6 @@ import (
 	"github.com/sivo4kin/ea-starter/config"
 )
 
-func First() (*Output, error) {
-	o := Output{
-		ChainId:  fmt.Sprintf("%s", "QWE"),
-		BlockNum: fmt.Sprintf("%d", 999),
-	}
-	return &o, nil
-}
-
-func Second() (*Output, error) {
-	o := Output{
-		ChainId:  fmt.Sprintf("%s", "SECOND"),
-		BlockNum: fmt.Sprintf("%d", 1111),
-	}
-	return &o, nil
-}
-
 func connect(string2 string) (*ethclient.Client, error) {
 	return ethclient.Dial(string2)
 }
