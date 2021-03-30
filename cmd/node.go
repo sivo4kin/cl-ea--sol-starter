@@ -2,17 +2,19 @@ package main
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/gorilla/mux"
 	"github.com/linkpoolio/bridges"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
+	"github.com/sivo4kin/ea-starter/adapters/bridge"
 	chainlink_integration "github.com/sivo4kin/ea-starter/adapters/chainlink-integration"
-	"github.com/sivo4kin/ea-starter/adapters/linkpoolio_bridges/ethealth"
 	"github.com/sivo4kin/ea-starter/config"
 	"github.com/sivo4kin/ea-starter/libp2p/dht"
 	"github.com/sivo4kin/ea-starter/libp2p/knockingtls"
+	"math/big"
 	"net/http"
 	"os"
 	"strconv"
@@ -33,11 +35,13 @@ type Node struct {
 	ORACLE_1_ADDRESS  common.Address
 	BRIDGE_2_ADDRESS  common.Address
 	ORACLE_2_ADDRESS  common.Address
+	pKey              *ecdsa.PrivateKey
 }
 
 type addrList []multiaddr.Multiaddr
 
 func NewNode() (err error) {
+
 	dir, err := os.Getwd()
 	if err != nil {
 		logrus.Warn(err)
@@ -55,6 +59,11 @@ func NewNode() (err error) {
 		CurrentRendezvous: "FirstRun",
 		//BRIDGE_1_ADDRESS:          common.HexToAddress(os.Getenv("BRIDGE_1_ADDRESS")),
 		//ORACLE_1_ADDRESS: common.HexToAddress(os.Getenv("ORACLE_1_ADDRESS")),
+	}
+
+	err = n.initKey()
+	if err != nil {
+		return
 	}
 
 	err = n.initEthClients()
@@ -105,14 +114,35 @@ func (n Node) strtKnokinkTLS() {
 
 func (n Node) NewBridge() (srv *bridges.Server) {
 	var bridgesList []bridges.Bridge
-	ad, err := ethealth.NewEthHealth(n.EthClient_1)
+	ad, err := bridge.NewEthHealth(n.EthClient_1, "Health Chain 1", "health1", bridge.First)
+	if err != nil {
+		logrus.Fatal(err)
+		return
+	}
+
+	ad2, err := bridge.NewEthHealth(n.EthClient_2, "Health Chain 2", "health2", bridge.Second)
 	if err != nil {
 		logrus.Fatal(err)
 		return
 	}
 	bridgesList = append(bridgesList, ad)
+	bridgesList = append(bridgesList, ad2)
 	srv = bridges.NewServer(bridgesList...)
 	return
+}
+
+func (n Node) initKey() (err error) {
+	n.pKey, err = ToECDSAFromHex(os.Getenv("SK"))
+	if err != nil {
+		return
+	}
+	return
+}
+
+func ToECDSAFromHex(hexString string) (*ecdsa.PrivateKey, error) {
+	pk := new(ecdsa.PrivateKey)
+	pk.D, _ = new(big.Int).SetString(hexString, 16)
+	return pk, nil
 }
 
 func main() {
