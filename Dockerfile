@@ -6,8 +6,6 @@ WORKDIR /p2p-bridge
 
 ADD ./adapter/p2p-bridge .
 
-RUN ls -la
-
 RUN go mod download
 
 RUN CGO_ENABLED=1 GOOS=linux \
@@ -19,8 +17,13 @@ COPY --from=build /etc/ssl/certs/ca-certificates.crt \
      /etc/ssl/certs/ca-certificates.crt
 
 COPY --from=build /p2p-bridge/bridge /bridge
+
 COPY --from=build /p2p-bridge/config/my.yaml  config/
+
 COPY --from=build /p2p-bridge/keys/srv3-ecdsa.key  keys/
+
 COPY --from=build /p2p-bridge/keys/srv3-rsa.key  keys/
+
+EXPOSE ${PORT}
 
 ENTRYPOINT ["/bridge"]
