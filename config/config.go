@@ -18,10 +18,10 @@ type AppConfig struct {
 	POOL_ADDRESS            string
 	ORACLE_CONTRACT_ADDRESS string
 	TOKENPOOL_ADDRESS       string
-	BRIDGE_ADDRESS          string
+	BRIDGE_1_ADDRESS        string
+	BRIDGE_2_ADDRESS        string
 	CHAIN_1_URL             string
 	CHAIN_2_URL             string
-	INFURA_URL              string
 	TickerInterval          time.Duration
 	ECDSA_KEY               string
 	P2P_PORT                int

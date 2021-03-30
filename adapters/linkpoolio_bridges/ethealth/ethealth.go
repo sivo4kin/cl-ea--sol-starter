@@ -1,4 +1,4 @@
-package getblock
+package ethealth
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/linkpoolio/bridges"
 	"github.com/sirupsen/logrus"
-	"github.com/sivo4kin/ea-starter/config"
 	"log"
 	"time"
 )
@@ -16,7 +15,7 @@ type Output struct {
 	BlockNum string `json:"blockNum"`
 }
 
-func (ap *Ticker) GetChainIDAndBlock(client ethclient.Client) (*Output, error) {
+func (ap *EthHealth) GetChainIDAndBlock(client ethclient.Client) (*Output, error) {
 
 	chainID, err := client.ChainID(context.Background())
 	if err != nil {
@@ -35,7 +34,7 @@ func (ap *Ticker) GetChainIDAndBlock(client ethclient.Client) (*Output, error) {
 	return &o, nil
 }
 
-func (ap *Ticker) StartChainTicker(client ethclient.Client, dur time.Duration) (err error) {
+func (ap *EthHealth) StartChainTicker(client ethclient.Client, dur time.Duration) (err error) {
 	logrus.Print("StartChainTicker")
 	n, err := ap.GetLatestBlock(client)
 	if err != nil {
@@ -52,31 +51,29 @@ func (ap *Ticker) StartChainTicker(client ethclient.Client, dur time.Duration) (
 	return
 }
 
-func (ap *Ticker) GetLatestBlock(client ethclient.Client) (n uint64, err error) {
+func (ap *EthHealth) GetLatestBlock(client ethclient.Client) (n uint64, err error) {
 	n, err = client.BlockNumber(context.Background())
 	return
 }
 
-func NewTicker(cfg config.AppConfig) (a *Ticker, err error) {
-	a = &Ticker{}
-	a.Config = cfg
-	a.CLient, err = ethclient.Dial(config.Config.INFURA_URL)
+func NewEthHealth(ethClient *ethclient.Client) (a *EthHealth, err error) {
+	a = &EthHealth{}
+	a.CLient = ethClient
 	return
 }
 
-type Ticker struct {
+type EthHealth struct {
 	CLient *ethclient.Client
-	Config config.AppConfig
 }
 
-func (ap *Ticker) Opts() *bridges.Opts {
+func (ap *EthHealth) Opts() *bridges.Opts {
 	return &bridges.Opts{
-		Name:   "Tick",
+		Name:   "Health",
 		Lambda: true,
-		Path:   "/tick",
+		Path:   "/health",
 	}
 }
 
-func (ap *Ticker) Run(helper *bridges.Helper) (interface{}, error) {
+func (ap *EthHealth) Run(helper *bridges.Helper) (interface{}, error) {
 	return ap.GetChainIDAndBlock(*ap.CLient)
 }
