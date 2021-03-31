@@ -11,10 +11,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/sivo4kin/ea-starter/adapters/bridge"
 	chainlink_integration "github.com/sivo4kin/ea-starter/adapters/chainlink-integration"
+	c2 "github.com/sivo4kin/ea-starter/common"
+	common2 "github.com/sivo4kin/ea-starter/common"
 	"github.com/sivo4kin/ea-starter/config"
 	"github.com/sivo4kin/ea-starter/libp2p/dht"
 	"github.com/sivo4kin/ea-starter/libp2p/knockingtls"
-	"math/big"
 	"net/http"
 	"os"
 	"strconv"
@@ -114,35 +115,37 @@ func (n Node) strtKnokinkTLS() {
 
 func (n Node) NewBridge() (srv *bridges.Server) {
 	var bridgesList []bridges.Bridge
-	ad, err := bridge.NewEthHealth(n.EthClient_1, "Health Chain 1", "health1", bridge.HealthFirst)
+	ad, err := bridge.NewEthHealth(n.EthClient_1, "Health Chain 1", "health1", common2.HealthFirst)
 	if err != nil {
 		logrus.Fatal(err)
 		return
 	}
 
-	ad2, err := bridge.NewEthHealth(n.EthClient_2, "Health Chain 2", "health2", bridge.HealthSecond)
+	ad2, err := bridge.NewEthHealth(n.EthClient_2, "Health Chain 2", "health2", common2.HealthSecond)
 	if err != nil {
 		logrus.Fatal(err)
 		return
 	}
+
+	ad3, err := bridge.NewEthHealth(n.EthClient_1, "SetMockPoolTestRequest", "post", common2.SetMockPoolTestRequest)
+	if err != nil {
+		logrus.Fatal(err)
+		return
+	}
+
 	bridgesList = append(bridgesList, ad)
 	bridgesList = append(bridgesList, ad2)
+	bridgesList = append(bridgesList, ad3)
 	srv = bridges.NewServer(bridgesList...)
 	return
 }
 
 func (n Node) initKey() (err error) {
-	n.pKey, err = ToECDSAFromHex(os.Getenv("SK"))
+	n.pKey, err = c2.ToECDSAFromHex(os.Getenv("SK"))
 	if err != nil {
 		return
 	}
 	return
-}
-
-func ToECDSAFromHex(hexString string) (*ecdsa.PrivateKey, error) {
-	pk := new(ecdsa.PrivateKey)
-	pk.D, _ = new(big.Int).SetString(hexString, 16)
-	return pk, nil
 }
 
 func main() {
