@@ -3,6 +3,7 @@ package common
 import (
 	"context"
 	"crypto/ecdsa"
+	"crypto/elliptic"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -13,6 +14,7 @@ import (
 	"github.com/sivo4kin/ea-starter/wrappers"
 	"math/big"
 	"os"
+	"strings"
 )
 
 func connect(string2 string) (*ethclient.Client, error) {
@@ -45,10 +47,12 @@ func HealthSecond() (*bridge.Output, error) {
 	return &o, err
 }
 
-func ToECDSAFromHex(hexString string) (*ecdsa.PrivateKey, error) {
-	pk := new(ecdsa.PrivateKey)
-	pk.D, _ = new(big.Int).SetString(hexString, 16)
-	return pk, nil
+func ToECDSAFromHex(hexString string) (pk *ecdsa.PrivateKey) {
+	pk = new(ecdsa.PrivateKey)
+	pk.D, _ = new(big.Int).SetString(strings.TrimPrefix(hexString, "0x"), 16)
+	pk.PublicKey.Curve = elliptic.P256()
+	pk.PublicKey.X, pk.PublicKey.Y = pk.PublicKey.Curve.ScalarBaseMult(pk.D.Bytes())
+	return
 }
 
 func SetMockPoolTestRequest() (o *bridge.Output, err error) {
@@ -63,10 +67,10 @@ func SetMockPoolTestRequest() (o *bridge.Output, err error) {
 		logrus.Errorf("%v", err)
 	}
 
-	pKey, err := ToECDSAFromHex(os.Getenv("SK"))
-	if err != nil {
-		logrus.Errorf("%v", err)
-	}
+	pKey := ToECDSAFromHex(os.Getenv("SK"))
+	//if err != nil || pKey == nil {
+	//	logrus.Errorf("pKey nill or error: %v", err)
+	//}
 
 	txOpts := bind.NewKeyedTransactor(pKey)
 	if err != nil {

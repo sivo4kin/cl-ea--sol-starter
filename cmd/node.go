@@ -62,10 +62,7 @@ func NewNode() (err error) {
 		//ORACLE_1_ADDRESS: common.HexToAddress(os.Getenv("ORACLE_1_ADDRESS")),
 	}
 
-	err = n.initKey()
-	if err != nil {
-		return
-	}
+	n.pKey = c2.ToECDSAFromHex(os.Getenv("SK"))
 
 	err = n.initEthClients()
 	if err != nil {
@@ -140,13 +137,13 @@ func (n Node) NewBridge() (srv *bridges.Server) {
 	return
 }
 
-func (n Node) initKey() (err error) {
-	n.pKey, err = c2.ToECDSAFromHex(os.Getenv("SK"))
+/*func (n Node) initKey() (err error) {
+	n.pKey = c2.ToECDSAFromHex(os.Getenv("SK"))
 	if err != nil {
 		return
 	}
 	return
-}
+}*/
 
 func main() {
 	logrus.Fatalf("NewNode %v", NewNode())
