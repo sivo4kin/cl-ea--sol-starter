@@ -1,12 +1,12 @@
 FROM golang:alpine as build
 
-RUN apk add --no-cache ca-certificates build-base
+RUN apk add --no-cache ca-certificates build-base git
 
 WORKDIR /p2p-bridge
 
 ADD ./adapter/p2p-bridge .
 
-RUN go mod download
+RUN go mod tidy
 
 RUN make keys
 

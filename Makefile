@@ -12,18 +12,16 @@ npm:
 
 wrappers: npm
 	cd truffle;npx truffle build;
-	go run ./wrappers-builder --json truffle/build/contracts --pkg wrappers --out wrappers
+	go run wrappers-builder/main.go --json truffle/build/contracts --pkg wrappers --out wrappers
 
 clean:
-	rm ./wrappers/*.go || rm ./truffle/build/contracts/*.json || rm ./ea-starter ./wrappers-builder/wrappers-builder || rm keys/*.key || rm logs/*.log
+	rm ./wrappers/*.go || rm ./truffle/build/contracts/*.json || rm ./bridge ./wrappers-builder/wrappers-builder || rm keys/*.key || rm logs/*.log
 
 build: keys
-	cd ./wrappers-builder;$(GOBUILD)
-	#rm bridge
 	go build -o bridge  cmd/node.go
 
 start: build
-	./node
+	./bridge
 
 
 testbls:
