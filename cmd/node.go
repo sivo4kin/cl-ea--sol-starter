@@ -107,19 +107,19 @@ func (n Node) initEthClients() (err error) {
 
 func (n Node) NewBridge() (srv *bridges.Server) {
 	var bridgesList []bridges.Bridge
-	ad, err := adapters.NewEthHealth(n.EthClient_1, "Health Chain 1", "1", common2.HealthFirst)
+	ad, err := adapters.NewDBridge(n.EthClient_1, "Health Chain 1", "1", common2.HealthFirst)
 	if err != nil {
 		logrus.Fatal(err)
 		return
 	}
 
-	ad2, err := adapters.NewEthHealth(n.EthClient_2, "Health Chain 2", "2", common2.HealthSecond)
+	ad2, err := adapters.NewDBridge(n.EthClient_2, "Health Chain 2", "2", common2.HealthSecond)
 	if err != nil {
 		logrus.Fatal(err)
 		return
 	}
 
-	ad3, err := adapters.NewEthHealth(n.EthClient_1, "SetMockPoolTestRequest", "test", common2.SetMockPoolTestRequest)
+	ad3, err := adapters.NewDBridge(n.EthClient_1, "SetMockPoolTestRequest", "test", common2.SetMockPoolTestRequest)
 	if err != nil {
 		logrus.Fatal(err)
 		return

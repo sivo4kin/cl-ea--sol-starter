@@ -8,7 +8,7 @@ import (
 	"github.com/linkpoolio/bridges"
 )
 
-type EthHealth struct {
+type DBridge struct {
 	CLient *ethclient.Client
 	Name   string
 	Url    string
@@ -22,16 +22,17 @@ type Output struct {
 	TxHash   string `json:"txhash"`
 }
 
-func NewEthHealth(ethClient *ethclient.Client, name, url string, f func(*bridges.Helper) (*Output, error)) (a *EthHealth, err error) {
-	a = &EthHealth{}
+func NewDBridge(ethClient *ethclient.Client, name, url string, f func(*bridges.Helper) (*Output, error)) (a *DBridge, err error) {
+	a = &DBridge{}
 	a.CLient = ethClient
 	a.Name = name
 	a.Url = url
 	a.Func = f
 	return
+
 }
 
-func (ap *EthHealth) Opts() *bridges.Opts {
+func (ap *DBridge) Opts() *bridges.Opts {
 	return &bridges.Opts{
 		Name:   ap.Name,
 		Lambda: ap.Lambda,
@@ -39,7 +40,7 @@ func (ap *EthHealth) Opts() *bridges.Opts {
 	}
 }
 
-func (ap *EthHealth) Run(helper *bridges.Helper) (interface{}, error) {
+func (ap *DBridge) Run(helper *bridges.Helper) (interface{}, error) {
 
 	res, err := ap.Func(helper)
 
