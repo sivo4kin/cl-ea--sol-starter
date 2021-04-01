@@ -4,15 +4,16 @@ import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 import "@chainlink/contracts/src/v0.6/ChainlinkClient.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./libraries/Other.sol";
 
 
 
 
 
 contract Bridge is ChainlinkClient, Ownable {
-  
+
   //TODO к коефиге ноды чейнлинка стоит 1 линк. Попытаться исправить
-  uint256 constant private ORACLE_PAYMENT =  1 * LINK;//0.1 * 10 ** 18; // 0.1 LINK    
+  uint256 constant private ORACLE_PAYMENT =  1 * LINK;//0.1 * 10 ** 18; // 0.1 LINK
   address public oracle;
 
   bytes32[] private specIdListPermission;
@@ -30,13 +31,13 @@ contract Bridge is ChainlinkClient, Ownable {
     uint256 dataVersion,
     bytes data
   );
-  
+
 
   // requestId => recipient
   mapping(bytes32 => address) private routeForCallback;
   mapping(address => bool)    private whiteList;
   mapping(bytes32 => uint256) private agregator;
-  
+
   /**
    * @notice Deploy the contract with a specified address for the LINK
    * and Oracle contract addresses
@@ -83,10 +84,8 @@ contract Bridge is ChainlinkClient, Ownable {
     return chainlinkTokenAddress();
   }
 
-  /**
-    Create request from 1 -> 2 (another side)
-  */
-  function transmitRequest(string memory rqt, string memory  _selector, string memory  receiveSide)
+
+  function transmitRequestV2(bytes memory  _selector, address receiveSide)
     public
     /*onlyOwner*/
     returns (bytes32 requestId)
@@ -95,10 +94,39 @@ contract Bridge is ChainlinkClient, Ownable {
     //require(msg.sender == myContract, "ONLY PERMISSIONED ADDRESS");
 
     Chainlink.Request memory req = buildChainlinkRequest(specIdListPermission[0], address(this), this.callback.selector);
-    req.add("selector", _selector);
+    req.add("selector", Other.bytesToHexString(_selector));
+    req.add("callback", "disable");
+    req.add("request_type", "setRequest");
+    req.add("receive_side", Other.toAsciiString(receiveSide));
+
+    requestId = sendChainlinkRequestTo(oracle, req, ORACLE_PAYMENT);
+
+    emitBroadcast(address(this),
+                  requestId,
+                  ORACLE_PAYMENT,
+                  address(this),
+                  this.callback.selector,
+                  EXPIRY_TIME,
+                  ARGS_VERSION,
+                  req.buf.buf);
+  }
+
+  /**
+    Create request from 1 -> 2 (another side)
+  */
+  function transmitRequest(string memory rqt, bytes memory  _selector, address receiveSide)
+    public
+    /*onlyOwner*/
+    returns (bytes32 requestId)
+  {
+
+    //require(msg.sender == myContract, "ONLY PERMISSIONED ADDRESS");
+
+    Chainlink.Request memory req = buildChainlinkRequest(specIdListPermission[0], address(this), this.callback.selector);
+    req.add("selector", Other.bytesToHexString(_selector));
     req.add("request_type", rqt);
-    req.add("receive_side", receiveSide);
-    
+    req.add("receive_side", Other.toAsciiString(receiveSide));
+
     requestId = sendChainlinkRequestTo(oracle, req, ORACLE_PAYMENT);
     routeForCallback[requestId] = msg.sender;
 
@@ -120,7 +148,7 @@ contract Bridge is ChainlinkClient, Ownable {
     Chainlink.Request memory req = buildChainlinkRequest(specIdListPermission[0], address(this), this.callback.selector);
     req.add("request_type", "setResponse");
     req.add("correlationId", correlationId);
-    
+
 
     requestId = sendChainlinkRequestTo(oracle, req, ORACLE_PAYMENT);
 
@@ -132,7 +160,7 @@ contract Bridge is ChainlinkClient, Ownable {
                   EXPIRY_TIME,
                   ARGS_VERSION,
                   req.buf.buf);
-  
+
   }
   /**
   * Receive invoke from other network through external adapter
@@ -152,14 +180,33 @@ contract Bridge is ChainlinkClient, Ownable {
     address res      = ECDSA.recover(hash, signature);
     require(true == whiteList[res], 'SECURITY EVENT');
     // require receiveSide != 0 || ....
-    
+
     agregator[hreqId] = agregator[hreqId] + 1;
     // HARD code: temporary equals 2
     if(agregator[hreqId] == 2 /* && NONCE === hash(local nonce, adr mycont_1) && ALL hashs == */){
       (bool success, bytes memory data) = receiveSide.call(b);
       require(success && (data.length == 0 || abi.decode(data, (bool))), 'FAILED');
-      
+
       transmitResponse(reqId);
+    }
+  }
+  function receiveRequestV2(string memory reqId,
+                          bytes memory signature,
+                          bytes memory b,
+                          bytes32 tx,
+                          address receiveSide) external {
+
+    bytes32 hreqId   = keccak256(abi.encodePacked(reqId));
+    bytes32 hash     = ECDSA.toEthSignedMessageHash(keccak256(abi.encodePacked(reqId, b, tx, receiveSide)));
+    address res      = ECDSA.recover(hash, signature);
+    require(true == whiteList[res], 'SECURITY EVENT');
+    // require receiveSide != 0 || ....
+
+    agregator[hreqId] = agregator[hreqId] + 1;
+    // HARD code: temporary equals 2
+    if(agregator[hreqId] == 2 /* && NONCE === hash(local nonce, adr mycont_1) && ALL hashs == */){
+      (bool success, bytes memory data) = receiveSide.call(b);
+      require(success && (data.length == 0 || abi.decode(data, (bool))), 'FAILED');
     }
   }
   /** Receive response from other side.
@@ -182,7 +229,7 @@ contract Bridge is ChainlinkClient, Ownable {
     }
 
 
-    
+
   }
 
   /**
@@ -196,7 +243,7 @@ contract Bridge is ChainlinkClient, Ownable {
     public
     recordChainlinkFulfillment(_requestId)
   {
-    
+
     //DexPool(routeForCallback[_requestId]).setPendingRequestsDone(_requestId, _data);
   }
 

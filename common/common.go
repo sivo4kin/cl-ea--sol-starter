@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/linkpoolio/bridges"
 	"github.com/sirupsen/logrus"
 	"github.com/sivo4kin/ea-starter/adapters/bridge"
 	"github.com/sivo4kin/ea-starter/config"
@@ -21,7 +22,7 @@ func Connect(string2 string) (*ethclient.Client, error) {
 	return ethclient.Dial(string2)
 }
 
-func HealthFirst() (*bridge.Output, error) {
+func HealthFirst(helper *bridges.Helper) (*bridge.Output, error) {
 	client, err := Connect(config.Config.CHAIN_1_URL)
 	if err != nil {
 		panic(err)
@@ -34,7 +35,7 @@ func HealthFirst() (*bridge.Output, error) {
 	return &o, err
 }
 
-func HealthSecond() (*bridge.Output, error) {
+func HealthSecond(helper *bridges.Helper) (*bridge.Output, error) {
 	client, err := Connect(config.Config.CHAIN_2_URL)
 	if err != nil {
 		panic(err)
@@ -52,7 +53,7 @@ func ToECDSAFromHex(hexString string) (pk *ecdsa.PrivateKey, err error) {
 	return
 }
 
-func SetMockPoolTestRequest() (o *bridge.Output, err error) {
+func SetMockPoolTestRequest(helper *bridges.Helper) (o *bridge.Output, err error) {
 	logrus.Printf("%v", 1)
 	client1, err := Connect(config.Config.CHAIN_1_URL)
 	if err != nil {

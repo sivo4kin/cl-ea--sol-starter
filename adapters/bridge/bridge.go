@@ -13,7 +13,7 @@ type EthHealth struct {
 	Name   string
 	Url    string
 	Lambda bool
-	Func   func() (*Output, error)
+	Func   func(*bridges.Helper) (*Output, error)
 }
 
 type Output struct {
@@ -21,7 +21,7 @@ type Output struct {
 	BlockNum string `json:"blockNum"`
 }
 
-func NewEthHealth(ethClient *ethclient.Client, name, url string, f func() (*Output, error)) (a *EthHealth, err error) {
+func NewEthHealth(ethClient *ethclient.Client, name, url string, f func(*bridges.Helper) (*Output, error)) (a *EthHealth, err error) {
 	a = &EthHealth{}
 	a.CLient = ethClient
 	a.Name = name
@@ -40,7 +40,7 @@ func (ap *EthHealth) Opts() *bridges.Opts {
 
 func (ap *EthHealth) Run(helper *bridges.Helper) (interface{}, error) {
 
-	res, err := ap.Func()
+	res, err := ap.Func(helper)
 
 	if err != nil {
 		return nil, err
@@ -49,3 +49,4 @@ func (ap *EthHealth) Run(helper *bridges.Helper) (interface{}, error) {
 	return res, nil
 
 }
+``
