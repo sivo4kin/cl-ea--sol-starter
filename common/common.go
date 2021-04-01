@@ -56,27 +56,29 @@ func ToECDSAFromHex(hexString string) (pk *ecdsa.PrivateKey, err error) {
 
 func SetMockPoolTestRequest(helper *bridges.Helper) (o *adapters.Output, err error) {
 	o = &adapters.Output{}
+	reqId := helper.GetIntParam("id")
 	client1, err := Connect(config.Config.CHAIN_1_URL)
 	if err != nil {
-		logrus.Errorf("%v", err)
+		return
+
 	}
 
 	pKey1, err := ToECDSAFromHex(os.Getenv("SK1"))
 	if err != nil {
-		logrus.Errorf("ToECDSAFromHex %v", err)
+		return
 	}
 
 	txOpts1 := bind.NewKeyedTransactor(pKey1)
 
 	mockDexPoolContract1, err := wrappers.NewMockDexPool(common.HexToAddress(config.Config.POOL_1_ADDRESS), client1)
 	if err != nil {
-		logrus.Errorf("NewMockDexPool 1 %v", err)
+		return
 	}
 
-	tx, err := mockDexPoolContract1.SendRequestTest(txOpts1, big.NewInt(99), common.HexToAddress(config.Config.POOL_2_ADDRESS))
+	tx, err := mockDexPoolContract1.SendRequestTest(txOpts1, big.NewInt(reqId), common.HexToAddress(config.Config.POOL_2_ADDRESS))
 
 	if err != nil {
-		logrus.Errorf(" SendRequestTest %v", err)
+		return
 	}
 
 	logrus.Printf("TX HASH %x", tx.Hash())
