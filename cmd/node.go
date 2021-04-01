@@ -10,7 +10,6 @@ import (
 	"github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
 	"github.com/sivo4kin/ea-starter/adapters"
-	c2 "github.com/sivo4kin/ea-starter/common"
 	common2 "github.com/sivo4kin/ea-starter/common"
 	"github.com/sivo4kin/ea-starter/config"
 	"github.com/sivo4kin/ea-starter/libp2p/dht"
@@ -58,7 +57,7 @@ func NewNode() (err error) {
 		//ORACLE_1_ADDRESS: common.HexToAddress(os.Getenv("ORACLE_1_ADDRESS")),
 	}
 
-	n.pKey, err = c2.ToECDSAFromHex(os.Getenv("SK1"))
+	n.pKey, err = common2.ToECDSAFromHex(os.Getenv("SK1"))
 	if err != nil {
 		return
 	}
