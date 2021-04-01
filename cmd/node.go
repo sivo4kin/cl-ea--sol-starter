@@ -9,13 +9,11 @@ import (
 	"github.com/linkpoolio/bridges"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
-	"github.com/sivo4kin/ea-starter/adapters/bridge"
-	chainlink_integration "github.com/sivo4kin/ea-starter/adapters/chainlink-integration"
+	"github.com/sivo4kin/ea-starter/adapters"
 	c2 "github.com/sivo4kin/ea-starter/common"
 	common2 "github.com/sivo4kin/ea-starter/common"
 	"github.com/sivo4kin/ea-starter/config"
 	"github.com/sivo4kin/ea-starter/libp2p/dht"
-	"github.com/sivo4kin/ea-starter/libp2p/knockingtls"
 	"net/http"
 	"os"
 	"strconv"
@@ -24,10 +22,8 @@ import (
 type Node struct {
 	Config            config.AppConfig
 	Ctx               context.Context
-	Srv               chainlink_integration.Chainlink
 	Router            *mux.Router
 	Server            bridges.Server
-	SecurePeer        knockingtls.СoncretePeer
 	DiscoveryPeers    addrList
 	CurrentRendezvous string
 	EthClient_1       *ethclient.Client
@@ -109,25 +105,21 @@ func (n Node) initEthClients() (err error) {
 	return
 }
 
-func (n Node) strtKnokinkTLS() {
-	go knockingtls.RunKnokingTLSPeer()
-}
-
 func (n Node) NewBridge() (srv *bridges.Server) {
 	var bridgesList []bridges.Bridge
-	ad, err := bridge.NewEthHealth(n.EthClient_1, "Health Chain 1", "health1", common2.HealthFirst)
+	ad, err := adapters.NewEthHealth(n.EthClient_1, "Health Chain 1", "health1", common2.HealthFirst)
 	if err != nil {
 		logrus.Fatal(err)
 		return
 	}
 
-	ad2, err := bridge.NewEthHealth(n.EthClient_2, "Health Chain 2", "health2", common2.HealthSecond)
+	ad2, err := adapters.NewEthHealth(n.EthClient_2, "Health Chain 2", "health2", common2.HealthSecond)
 	if err != nil {
 		logrus.Fatal(err)
 		return
 	}
 
-	ad3, err := bridge.NewEthHealth(n.EthClient_1, "SetMockPoolTestRequest", "post", common2.SetMockPoolTestRequest)
+	ad3, err := adapters.NewEthHealth(n.EthClient_1, "SetMockPoolTestRequest", "post", common2.SetMockPoolTestRequest)
 	if err != nil {
 		logrus.Fatal(err)
 		return

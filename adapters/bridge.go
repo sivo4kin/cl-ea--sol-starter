@@ -1,4 +1,4 @@
-package bridge
+package adapters
 
 import (
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -49,4 +49,3 @@ func (ap *EthHealth) Run(helper *bridges.Helper) (interface{}, error) {
 	return res, nil
 
 }
-``

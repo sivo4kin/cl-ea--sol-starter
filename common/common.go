@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/linkpoolio/bridges"
 	"github.com/sirupsen/logrus"
-	"github.com/sivo4kin/ea-starter/adapters/bridge"
+	"github.com/sivo4kin/ea-starter/adapters"
 	"github.com/sivo4kin/ea-starter/config"
 	"github.com/sivo4kin/ea-starter/wrappers"
 	"math/big"
@@ -22,26 +22,26 @@ func Connect(string2 string) (*ethclient.Client, error) {
 	return ethclient.Dial(string2)
 }
 
-func HealthFirst(helper *bridges.Helper) (*bridge.Output, error) {
+func HealthFirst(helper *bridges.Helper) (*adapters.Output, error) {
 	client, err := Connect(config.Config.CHAIN_1_URL)
 	if err != nil {
 		panic(err)
 	}
 	n, err := client.BlockNumber(context.Background())
-	o := bridge.Output{
+	o := adapters.Output{
 		ChainId:  fmt.Sprintf("%s", config.Config.CHAIN_1_URL),
 		BlockNum: fmt.Sprintf("%d", n),
 	}
 	return &o, err
 }
 
-func HealthSecond(helper *bridges.Helper) (*bridge.Output, error) {
+func HealthSecond(helper *bridges.Helper) (*adapters.Output, error) {
 	client, err := Connect(config.Config.CHAIN_2_URL)
 	if err != nil {
 		panic(err)
 	}
 	n, err := client.BlockNumber(context.Background())
-	o := bridge.Output{
+	o := adapters.Output{
 		ChainId:  fmt.Sprintf("%s", config.Config.CHAIN_2_URL),
 		BlockNum: fmt.Sprintf("%d", n),
 	}
@@ -53,7 +53,7 @@ func ToECDSAFromHex(hexString string) (pk *ecdsa.PrivateKey, err error) {
 	return
 }
 
-func SetMockPoolTestRequest(helper *bridges.Helper) (o *bridge.Output, err error) {
+func SetMockPoolTestRequest(helper *bridges.Helper) (o *adapters.Output, err error) {
 	logrus.Printf("%v", 1)
 	client1, err := Connect(config.Config.CHAIN_1_URL)
 	if err != nil {
