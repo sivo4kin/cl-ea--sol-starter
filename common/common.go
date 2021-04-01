@@ -60,49 +60,12 @@ func SetMockPoolTestRequest(helper *bridges.Helper) (o *adapters.Output, err err
 		logrus.Errorf("%v", err)
 	}
 
-	/*	client2, err := connect(config.Config.CHAIN_2_URL)
-		if err != nil {
-			logrus.Errorf("%v", err)
-		}*/
-
 	pKey1, err := ToECDSAFromHex(os.Getenv("SK1"))
 	if err != nil {
 		logrus.Errorf("ToECDSAFromHex %v", err)
 	}
 
 	txOpts1 := bind.NewKeyedTransactor(pKey1)
-	/*
-		pKey2, err := ToECDSAFromHex(os.Getenv("SK2"))
-		if err != nil {
-			logrus.Errorf( "ToECDSAFromHex %v", err)
-		}
-
-
-		txOpts2 := bind.NewKeyedTransactor(pKey2)
-
-		_, tx, mock1Contract, err := wrappers.DeployMockDexPool(txOpts1, client1, common.HexToAddress(config.Config.BRIDGE_1_ADDRESS))
-		if err != nil {
-			logrus.Errorf(  " DeployMockDexPool 1 %v", err)
-		}
-
-		mock2Addr, tx, _, err := wrappers.DeployMockDexPool(txOpts2, client2, common.HexToAddress(config.Config.BRIDGE_2_ADDRESS))
-		if err != nil {
-			logrus.Errorf(  " DeployMockDexPool 2 %v", err)
-		}
-
-		recept, err := client2.TransactionReceipt(context.Background(),tx.Hash())
-
-		if err != nil {
-			logrus.Errorf(  " TransactionReceipt %v", err)
-		}
-
-		logrus.Print(recept)
-		tx, err = mock1Contract.SendRequestTest(txOpts1, big.NewInt(99),mock2Addr)
-
-		if err != nil {
-			logrus.Errorf(  " SendRequestTest %v", err)
-		}
-	*/
 
 	mockDexPoolContract1, err := wrappers.NewMockDexPool(common.HexToAddress(config.Config.POOL_1_ADDRESS), client1)
 	if err != nil {
@@ -115,22 +78,6 @@ func SetMockPoolTestRequest(helper *bridges.Helper) (o *adapters.Output, err err
 		logrus.Errorf(" SendRequestTest %v", err)
 	}
 
-	//mockDexPoolContract2, err := wrappers.NewMockDexPoolTransactor(common.HexToAddress(config.Config.BRIDGE_2_ADDRESS), client2)
-	//if err != nil {
-	//	logrus.Errorf( "NewMockDexPool 2 %v", err)
-	//}
-	//
-	//mockDexPoolContract2.contract.address
-
-	//if err != nil {
-	//	logrus.Errorf("%v", err)
-	//}
-
-	//tx, err := mockDexPoolContract1.SendRequestTest(txOpts, big.NewInt(99), common.HexToAddress(config.Config.POOL_ADDRESS))
-	//
-	//if err != nil {
-	//	logrus.Errorf(  " SendRequestTest %v", err)
-	//}*/
 	logrus.Printf("TX HASH %x", tx.Hash())
 	o.ChainId = fmt.Sprintf("%s", tx.Hash().String())
 	o.BlockNum = fmt.Sprintf("%d", 1)
