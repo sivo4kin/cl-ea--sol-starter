@@ -32,7 +32,7 @@ testbls:
 test:
 	go test ./test -v
 
-all: build start
+all: build
 
 CONTRACTSRC=$(shell find truffle/contracts -name '*.sol' || true)
 
