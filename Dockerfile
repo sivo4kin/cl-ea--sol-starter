@@ -1,22 +1,16 @@
 FROM golang:alpine as build
 
-RUN apk add --no-cache ca-certificates build-base git
+RUN apk add --no-cache git gcc musl-dev linux-headers build-base
 
 WORKDIR /p2p-bridge
 
 ADD ./adapter/p2p-bridge .
 
-RUN go mod tidy
-
 RUN make keys
 
-RUN CGO_ENABLED=1 GOOS=linux \
-    go build -ldflags '-extldflags "-static"' -o bridge cmd/node.go
+RUN make
 
 FROM golang:alpine
-
-COPY --from=build /etc/ssl/certs/ca-certificates.crt \
-     /etc/ssl/certs/ca-certificates.crt
 
 COPY --from=build /p2p-bridge/bridge /bridge
 
