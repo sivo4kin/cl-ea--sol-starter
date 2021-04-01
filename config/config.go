@@ -15,7 +15,8 @@ type AppConfig struct {
 	// Example Variable
 	PORT                    int
 	LISTEN_NETWORK          string
-	POOL_ADDRESS            string
+	POOL_1_ADDRESS          string
+	POOL_2_ADDRESS          string
 	ORACLE_CONTRACT_ADDRESS string
 	TOKENPOOL_ADDRESS       string
 	BRIDGE_1_ADDRESS        string
