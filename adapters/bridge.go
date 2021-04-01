@@ -19,6 +19,7 @@ type EthHealth struct {
 type Output struct {
 	ChainId  string `json:"chainId"`
 	BlockNum string `json:"blockNum"`
+	TxHash   string `json:"txhash"`
 }
 
 func NewEthHealth(ethClient *ethclient.Client, name, url string, f func(*bridges.Helper) (*Output, error)) (a *EthHealth, err error) {

@@ -22,30 +22,31 @@ func Connect(string2 string) (*ethclient.Client, error) {
 	return ethclient.Dial(string2)
 }
 
-func HealthFirst(helper *bridges.Helper) (*adapters.Output, error) {
-	client, err := Connect(config.Config.CHAIN_1_URL)
+func Health(helper *bridges.Helper, rpcUrl string) (out *adapters.Output, err error) {
+	out = &adapters.Output{}
+	client, err := Connect(rpcUrl)
 	if err != nil {
-		panic(err)
+		return
 	}
-	n, err := client.BlockNumber(context.Background())
-	o := adapters.Output{
-		ChainId:  fmt.Sprintf("%s", config.Config.CHAIN_1_URL),
-		BlockNum: fmt.Sprintf("%d", n),
+	block, err := client.BlockNumber(context.Background())
+	if err != nil {
+		return
 	}
-	return &o, err
+	chainId, err := client.ChainID(context.Background())
+	if err != nil {
+		return
+	}
+	out.ChainId = fmt.Sprintf("%d", chainId)
+	out.BlockNum = fmt.Sprintf("%d", block)
+	return
+}
+
+func HealthFirst(helper *bridges.Helper) (out *adapters.Output, err error) {
+	return Health(helper, config.Config.CHAIN_1_URL)
 }
 
 func HealthSecond(helper *bridges.Helper) (*adapters.Output, error) {
-	client, err := Connect(config.Config.CHAIN_2_URL)
-	if err != nil {
-		panic(err)
-	}
-	n, err := client.BlockNumber(context.Background())
-	o := adapters.Output{
-		ChainId:  fmt.Sprintf("%s", config.Config.CHAIN_2_URL),
-		BlockNum: fmt.Sprintf("%d", n),
-	}
-	return &o, err
+	return Health(helper, config.Config.CHAIN_2_URL)
 }
 
 func ToECDSAFromHex(hexString string) (pk *ecdsa.PrivateKey, err error) {
@@ -54,7 +55,7 @@ func ToECDSAFromHex(hexString string) (pk *ecdsa.PrivateKey, err error) {
 }
 
 func SetMockPoolTestRequest(helper *bridges.Helper) (o *adapters.Output, err error) {
-	logrus.Printf("%v", 1)
+	o = &adapters.Output{}
 	client1, err := Connect(config.Config.CHAIN_1_URL)
 	if err != nil {
 		logrus.Errorf("%v", err)
@@ -79,7 +80,7 @@ func SetMockPoolTestRequest(helper *bridges.Helper) (o *adapters.Output, err err
 	}
 
 	logrus.Printf("TX HASH %x", tx.Hash())
-	o.ChainId = fmt.Sprintf("%s", tx.Hash().String())
-	o.BlockNum = fmt.Sprintf("%d", 1)
+	o.ChainId = fmt.Sprintf("%s", tx.ChainId())
+	o.TxHash = tx.Hash().Hex()
 	return
 }
