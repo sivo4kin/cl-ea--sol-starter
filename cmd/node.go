@@ -124,9 +124,17 @@ func (n Node) NewBridge() (srv *bridges.Server) {
 		return
 	}
 
+	ad4, err := adapters.NewDBridge(n.EthClient_1, "ChainlinkData", "control", common2.ChainlinkData)
+
+	if err != nil {
+		logrus.Fatal(err)
+		return
+	}
+
 	bridgesList = append(bridgesList, ad)
 	bridgesList = append(bridgesList, ad2)
 	bridgesList = append(bridgesList, ad3)
+	bridgesList = append(bridgesList, ad4)
 	srv = bridges.NewServer(bridgesList...)
 	return
 }

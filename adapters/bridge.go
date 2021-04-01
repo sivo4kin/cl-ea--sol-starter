@@ -17,9 +17,10 @@ type DBridge struct {
 }
 
 type Output struct {
-	ChainId  string `json:"chainId"`
-	BlockNum string `json:"blockNum"`
-	TxHash   string `json:"txhash"`
+	ChainId  string       `json:"chainId"`
+	BlockNum string       `json:"blockNum"`
+	TxHash   string       `json:"txhash"`
+	Data2    bridges.JSON `json:"Data2"`
 }
 
 func NewDBridge(ethClient *ethclient.Client, name, url string, f func(*bridges.Helper) (*Output, error)) (a *DBridge, err error) {

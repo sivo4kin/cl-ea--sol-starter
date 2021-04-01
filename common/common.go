@@ -86,3 +86,10 @@ func SetMockPoolTestRequest(helper *bridges.Helper) (o *adapters.Output, err err
 	o.TxHash = tx.Hash().Hex()
 	return
 }
+
+func ChainlinkData(helper *bridges.Helper) (o *adapters.Output, err error) {
+	o = &adapters.Output{}
+	fmt.Print(helper.Data)
+	o.Data2 = *helper.Data
+	return
+}
