@@ -42,11 +42,11 @@ func Health(helper *bridges.Helper, rpcUrl string) (out *adapters.Output, err er
 }
 
 func HealthFirst(helper *bridges.Helper) (out *adapters.Output, err error) {
-	return Health(helper, config.Config.CHAIN_1_URL)
+	return Health(helper, config.Config.NETWORK_RPC_1)
 }
 
 func HealthSecond(helper *bridges.Helper) (*adapters.Output, error) {
-	return Health(helper, config.Config.CHAIN_2_URL)
+	return Health(helper, config.Config.NETWORK_RPC_2)
 }
 
 func ToECDSAFromHex(hexString string) (pk *ecdsa.PrivateKey, err error) {
@@ -57,7 +57,7 @@ func ToECDSAFromHex(hexString string) (pk *ecdsa.PrivateKey, err error) {
 func SetMockPoolTestRequest(helper *bridges.Helper) (o *adapters.Output, err error) {
 	o = &adapters.Output{}
 	reqId := helper.GetIntParam("id")
-	client1, err := Connect(config.Config.CHAIN_1_URL)
+	client1, err := Connect(config.Config.NETWORK_RPC_1)
 	if err != nil {
 		return
 
@@ -70,12 +70,12 @@ func SetMockPoolTestRequest(helper *bridges.Helper) (o *adapters.Output, err err
 
 	txOpts1 := bind.NewKeyedTransactor(pKey1)
 
-	mockDexPoolContract1, err := wrappers.NewMockDexPool(common.HexToAddress(config.Config.POOL_1_ADDRESS), client1)
+	mockDexPoolContract1, err := wrappers.NewMockDexPool(common.HexToAddress(config.Config.TOKENPOOL_ADDRESS_1), client1)
 	if err != nil {
 		return
 	}
 
-	tx, err := mockDexPoolContract1.SendRequestTest(txOpts1, big.NewInt(reqId), common.HexToAddress(config.Config.POOL_2_ADDRESS))
+	tx, err := mockDexPoolContract1.SendRequestTest(txOpts1, big.NewInt(reqId), common.HexToAddress(config.Config.TOKENPOOL_ADDRESS_2))
 
 	if err != nil {
 		return

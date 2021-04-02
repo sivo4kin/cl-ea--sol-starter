@@ -15,7 +15,6 @@ import (
 	"github.com/sivo4kin/ea-starter/libp2p/dht"
 	"net/http"
 	"os"
-	"strconv"
 )
 
 type Node struct {
@@ -43,14 +42,10 @@ func NewNode() (err error) {
 		logrus.Warn(err)
 	}
 	logrus.Printf("started in directory %s", dir)
-
-	err = config.LoadConfig(".")
-	if err != nil {
-		return
-	}
+	cnf := config.LoadConfigAndArgs()
 
 	n := &Node{
-		Config:            config.Config,
+		Config:            *cnf,
 		Ctx:               context.Background(),
 		CurrentRendezvous: "FirstRun",
 		//BRIDGE_1_ADDRESS:          common.HexToAddress(os.Getenv("BRIDGE_1_ADDRESS")),
@@ -69,15 +64,11 @@ func NewNode() (err error) {
 
 	server := n.NewBridge()
 	n.Server = *server
-	port, err := strconv.Atoi(os.Getenv("PORT"))
-	if err != nil {
-		port = n.Config.PORT
-	}
-
-	go n.Server.Start(port)
+	logrus.Printf("n.Config.PORT_1 %d", config.Config.PORT_1)
+	go n.Server.Start(config.Config.PORT_1)
 
 	go func() {
-		err = dht.NewDHTBootPeer(dir+config.Config.ECDSA_KEY, n.Config.P2P_PORT)
+		err = dht.NewDHTBootPeer(dir+config.Config.ECDSA_KEY_1, config.Config.P2P_PORT)
 		if err != nil {
 			return
 		}
@@ -92,12 +83,13 @@ func NewNode() (err error) {
 }
 
 func (n Node) initEthClients() (err error) {
-	n.EthClient_1, err = ethclient.Dial(config.Config.CHAIN_1_URL)
+	logrus.Printf("config.Config.NETWORK_RPC_1 %s", config.Config.NETWORK_RPC_1)
+	n.EthClient_1, err = ethclient.Dial(config.Config.NETWORK_RPC_1)
 	if err != nil {
 		return
 	}
 
-	n.EthClient_2, err = ethclient.Dial(config.Config.CHAIN_2_URL)
+	n.EthClient_2, err = ethclient.Dial(config.Config.NETWORK_RPC_2)
 	if err != nil {
 		return
 	}

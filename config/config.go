@@ -2,6 +2,8 @@ package config
 
 import (
 	"flag"
+	"github.com/sirupsen/logrus"
+
 	//"context"
 	"fmt"
 	"github.com/spf13/viper"
@@ -12,26 +14,33 @@ import (
 var Config AppConfig
 
 type AppConfig struct {
-	// Example Variable
-	PORT                    int
-	LISTEN_NETWORK          string
-	POOL_1_ADDRESS          string
-	POOL_2_ADDRESS          string
-	ORACLE_CONTRACT_ADDRESS string
-	TOKENPOOL_ADDRESS       string
-	BRIDGE_1_ADDRESS        string
-	BRIDGE_2_ADDRESS        string
-	CHAIN_1_URL             string
-	CHAIN_2_URL             string
-	TickerInterval          time.Duration
-	ECDSA_KEY               string
-	P2P_PORT                int
+	CONFIG_PATH string
+
+	TickerInterval time.Duration
+
+	ECDSA_KEY_2 string
+	ECDSA_KEY_1 string
+
+	P2P_PORT int
+
+	PORT_2                    int
+	PORT_1                    int
+	LISTEN_NETWORK_2          string
+	LISTEN_NETWORK_1          string
+	ORACLE_CONTRACT_ADDRESS_2 string
+	ORACLE_CONTRACT_ADDRESS_1 string
+	TOKENPOOL_ADDRESS_2       string
+	TOKENPOOL_ADDRESS_1       string
+	BRIDGE_ADDRESS_2          string
+	BRIDGE_ADDRESS_1          string
+	NETWORK_RPC_2             string
+	NETWORK_RPC_1             string
 }
 
 func ReadConfig() error {
-	viper.SetConfigName("my") // name of config file (without extension)
+	viper.SetConfigName("env_connect_to_network_with_nums") // name of config file (without extension)
 	viper.SetEnvPrefix("cross-chain")
-	viper.SetConfigType("yaml") // REQUIRED if the config file does not have the extension in the name
+	viper.SetConfigType("env") // REQUIRED if the config file does not have the extension in the name
 	viper.AddConfigPath("../config")
 	viper.AddConfigPath("../../config") // path to look for the config file in
 	viper.AddConfigPath("$HOME")        // call multiple times to add many search paths
@@ -47,8 +56,8 @@ func ReadConfig() error {
 // LoadConfig loads config from files
 func LoadConfig(configPaths ...string) error {
 	v := viper.New()
-	v.SetConfigName("my")
-	v.SetConfigType("yaml")
+	v.SetConfigName("env_connect_to_network_with_nums")
+	v.SetConfigType("env")
 	v.SetEnvPrefix("cross-chain")
 	v.AutomaticEnv()
 	v.AddConfigPath("../")
@@ -69,18 +78,16 @@ func LoadConfig(configPaths ...string) error {
 
 func LoadConfigAndArgs() (cfg *AppConfig) {
 	cfg = NewConfig()
-	LoadConfig(".")
+	logrus.Print("config", cfg.CONFIG_PATH)
+	LoadConfig(cfg.CONFIG_PATH)
 	return cfg
 }
 
 func NewConfig() *AppConfig {
 	c := AppConfig{}
-	flag.IntVar(&c.PORT, "p", 8080, "Port number to serve")
-	flag.DurationVar(
-		&c.TickerInterval,
-		"t",
-		time.Minute,
-		"Ticker interval for the adaptor to refresh supported trading pairs, suggested units: s, m, h")
+	flag.StringVar(&c.CONFIG_PATH, "cnf", "env_connect_to_network_with_nums", "config file name without extention")
 	flag.Parse()
+	logrus.Printf("config %s", c.CONFIG_PATH)
+
 	return &c
 }
