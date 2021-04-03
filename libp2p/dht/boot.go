@@ -12,16 +12,18 @@ import (
 	ddht "github.com/libp2p/go-libp2p-kad-dht/dual"
 	"github.com/sirupsen/logrus"
 	"github.com/sivo4kin/ea-starter/keys"
+	"os"
 	"time"
 )
 
-func NewDHTBootPeer(key string, port int) (err error) {
+func NewDHTBootPeer(keyFile string, port int) (err error) {
+	logrus.Printf("keyFile %s port %d", keyFile, port)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	//настроить host который option
 	listenAddr := libp2p.ListenAddrStrings(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", port))
-	privKey, err := keys.ReadHostKey("./keys/srv3-ecdsa.key")
+	privKey, err := keys.ReadHostKey(keyFile)
 	if err != nil {
 		logrus.Errorf("ERROR GETTING CERT %v", err)
 		//panic(err)
@@ -56,13 +58,17 @@ func NewDHTBootPeer(key string, port int) (err error) {
 		//panic(err)
 		return
 	}
+	for i, addr := range host.Addrs() {
+		if i == 0 {
+			nodeURL := fmt.Sprintf("%s/p2p/%s", addr, host.ID().Pretty())
+			logrus.Printf("Node Address: %s\n", nodeURL)
+			setBootNodeURLEnv(nodeURL)
+		}
 
-	for _, addr := range host.Addrs() {
-		logrus.Printf("Addr: %s/p2p/%s\n", addr, host.ID().Pretty())
 	}
 
 	host.SetStreamHandler(dht.ProtocolDHT, func(stream network.Stream) {
-		logrus.Printf("handling %s\n", stream)
+		logrus.Printf("handling %sv\n", stream)
 	})
 
 	select {}
@@ -70,4 +76,11 @@ func NewDHTBootPeer(key string, port int) (err error) {
 
 func setFlags(ctx context.Context, port *int) {
 	flag.IntVar(port, "port", 6666, "")
+}
+
+func setBootNodeURLEnv(botNodeURL string) {
+	err := os.Setenv("P2P_URL", botNodeURL)
+	if err != nil {
+		logrus.Errorf("err %v", err)
+	}
 }

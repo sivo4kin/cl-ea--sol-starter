@@ -13,7 +13,6 @@ import (
 	common2 "github.com/sivo4kin/ea-starter/common"
 	"github.com/sivo4kin/ea-starter/config"
 	"github.com/sivo4kin/ea-starter/libp2p/dht"
-	"net/http"
 	"os"
 )
 
@@ -68,20 +67,14 @@ func NewNode() (err error) {
 	server := n.NewBridge()
 	n.Server = *server
 	logrus.Printf("n.Config.PORT_1 %d", config.Config.PORT_1)
-	go n.Server.Start(config.Config.PORT_1)
 
 	go func() {
-		err = dht.NewDHTBootPeer(dir+config.Config.ECDSA_KEY_1, config.Config.P2P_PORT)
+		err = dht.NewDHTBootPeer(config.Config.KEY_FILE, config.Config.P2P_PORT)
 		if err != nil {
 			return
 		}
 	}()
-
-	err = http.ListenAndServe(":3000", n.Router)
-	if err != nil {
-		return
-	}
-
+	n.Server.Start(config.Config.PORT_1)
 	return
 }
 

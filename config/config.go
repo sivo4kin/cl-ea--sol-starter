@@ -33,6 +33,7 @@ type AppConfig struct {
 	BRIDGE_ADDRESS_1          string
 	NETWORK_RPC_2             string
 	NETWORK_RPC_1             string
+	KEY_FILE                  string
 }
 
 func ReadConfig() error {
