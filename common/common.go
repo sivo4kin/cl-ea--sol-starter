@@ -14,7 +14,6 @@ import (
 	"github.com/sivo4kin/ea-starter/config"
 	"github.com/sivo4kin/ea-starter/wrappers"
 	"math/big"
-	"os"
 	"strings"
 )
 
@@ -63,7 +62,7 @@ func SetMockPoolTestRequest(helper *bridges.Helper) (o *adapters.Output, err err
 
 	}
 
-	pKey1, err := ToECDSAFromHex(os.Getenv("SK1"))
+	pKey1, err := ToECDSAFromHex(config.Config.ECDSA_KEY_1)
 	if err != nil {
 		return
 	}

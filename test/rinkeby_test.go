@@ -52,10 +52,10 @@ func TestRinkebyPool(t *testing.T) {
 }
 
 func Test_MockDexPool(t *testing.T) {
-	/*	SK1 := "0x194e868506502e5ecae3e5b623801548125a748e6b2da15681312a7cf0283acc"
+	/*	PKEY_ETH_1 := "0x194e868506502e5ecae3e5b623801548125a748e6b2da15681312a7cf0283acc"
 		SK2 := "0x0da632a0af66bc9748f4fe4e8261facffbaef084ae1c591b1d30889622975735"
 
-		privateKey1 , err := common2.ToECDSAFromHex(SK1)
+		privateKey1 , err := common2.ToECDSAFromHex(PKEY_ETH_1)
 		require.Nil(t, err)
 
 		privateKey2 , err := common2.ToECDSAFromHex(SK2)

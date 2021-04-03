@@ -52,7 +52,7 @@ func NewNode() (err error) {
 		//ORACLE_1_ADDRESS: common.HexToAddress(os.Getenv("ORACLE_1_ADDRESS")),
 	}
 
-	n.pKey, err = common2.ToECDSAFromHex(os.Getenv("SK1"))
+	n.pKey, err = common2.ToECDSAFromHex(config.Config.ECDSA_KEY_1)
 	if err != nil {
 		return
 	}
