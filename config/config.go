@@ -38,7 +38,7 @@ type AppConfig struct {
 }
 
 func ReadConfig() error {
-	viper.SetConfigName("env_connect_to_network_with_nums") // name of config file (without extension)
+	viper.SetConfigName("env_p2p_bridge") // name of config file (without extension)
 	viper.SetEnvPrefix("cross-chain")
 	viper.SetConfigType("env") // REQUIRED if the config file does not have the extension in the name
 	viper.AddConfigPath("../config")
@@ -56,7 +56,7 @@ func ReadConfig() error {
 // LoadConfig loads config from files
 func LoadConfig(configPaths ...string) error {
 	v := viper.New()
-	v.SetConfigName("env_connect_to_network_with_nums")
+	v.SetConfigName("env_p2p_bridge.env")
 	v.SetConfigType("env")
 	v.SetEnvPrefix("cross-chain")
 	v.AutomaticEnv()
@@ -85,7 +85,7 @@ func LoadConfigAndArgs() (cfg *AppConfig) {
 
 func NewConfig() *AppConfig {
 	c := AppConfig{}
-	flag.StringVar(&c.CONFIG_PATH, "cnf", "env_connect_to_network_with_nums", "config file name without extention")
+	flag.StringVar(&c.CONFIG_PATH, "cnf", "env_p2p_bridge.env", "config file name without extention")
 	flag.Parse()
 	logrus.Printf("config %s", c.CONFIG_PATH)
 
