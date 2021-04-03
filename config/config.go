@@ -2,8 +2,6 @@ package config
 
 import (
 	"flag"
-	"github.com/sirupsen/logrus"
-
 	//"context"
 	"fmt"
 	"github.com/spf13/viper"
@@ -40,13 +38,11 @@ type AppConfig struct {
 func ReadConfig() error {
 	viper.SetConfigName("env_p2p_bridge") // name of config file (without extension)
 	viper.SetEnvPrefix("cross-chain")
-	viper.SetConfigType("env") // REQUIRED if the config file does not have the extension in the name
-	viper.AddConfigPath("../config")
-	viper.AddConfigPath("../../config") // path to look for the config file in
-	viper.AddConfigPath("$HOME")        // call multiple times to add many search paths
-	viper.AddConfigPath(".")            // optionally look for config in the working directory
-	err := viper.ReadInConfig()         // Find and read the config file
-	if err != nil {                     // Handle errors reading the config file
+	viper.SetConfigType("env")   // REQUIRED if the config file does not have the extension in the name
+	viper.AddConfigPath("$HOME") // call multiple times to add many search paths
+	viper.AddConfigPath(".")     // optionally look for config in the working directory
+	err := viper.ReadInConfig()  // Find and read the config file
+	if err != nil {              // Handle errors reading the config file
 		//panic(fmt.Errorf("Fatal error config file: %s \n", err))
 		return err
 	}
@@ -60,10 +56,6 @@ func LoadConfig(configPaths ...string) error {
 	v.SetConfigType("env")
 	v.SetEnvPrefix("cross-chain")
 	v.AutomaticEnv()
-	v.AddConfigPath("../")
-	v.AddConfigPath("./config")
-	v.AddConfigPath("../config")
-	v.AddConfigPath("../../config")
 	for _, path := range configPaths {
 		v.AddConfigPath(path)
 		fmt.Print("path", path, "\n")
@@ -76,18 +68,15 @@ func LoadConfig(configPaths ...string) error {
 	return v.Unmarshal(&Config)
 }
 
-func LoadConfigAndArgs() (cfg *AppConfig) {
+func LoadConfigAndArgs() (cfg *AppConfig, err error) {
 	cfg = NewConfig()
-	logrus.Print("config", cfg.CONFIG_PATH)
-	LoadConfig(cfg.CONFIG_PATH)
-	return cfg
+	err = LoadConfig(cfg.CONFIG_PATH)
+	return
 }
 
 func NewConfig() *AppConfig {
 	c := AppConfig{}
-	flag.StringVar(&c.CONFIG_PATH, "cnf", "env_p2p_bridge.env", "config file name without extention")
+	flag.StringVar(&c.CONFIG_PATH, "cnf", ".", "config path absolute path")
 	flag.Parse()
-	logrus.Printf("config %s", c.CONFIG_PATH)
-
 	return &c
 }

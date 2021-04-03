@@ -42,7 +42,10 @@ func NewNode() (err error) {
 		logrus.Warn(err)
 	}
 	logrus.Printf("started in directory %s", dir)
-	cnf := config.LoadConfigAndArgs()
+	cnf, err := config.LoadConfigAndArgs()
+	if err != nil {
+		logrus.Fatal(err)
+	}
 
 	n := &Node{
 		Config:            *cnf,
