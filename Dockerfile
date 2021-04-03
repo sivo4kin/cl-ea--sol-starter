@@ -18,8 +18,8 @@ COPY --from=build /p2p-bridge/bridge /bridge
 
 COPY --from=build /p2p-bridge/keys/srv3-ecdsa.key  keys/
 
-COPY --from=build /p2p-bridge/env_p2p_bridge.env config/
+COPY --from=build /p2p-bridge/env_p2p_bridge.env .
 
 EXPOSE ${PORT}
 
-ENTRYPOINT ["./bridge -cnf ./config"]
+ENTRYPOINT ["/bridge"]
