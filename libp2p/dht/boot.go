@@ -21,13 +21,12 @@ func NewDHTBootPeer(key string, port int) (err error) {
 
 	//настроить host который option
 	listenAddr := libp2p.ListenAddrStrings(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", port))
-	privKey, pubkey, err := keys.ReadKeys("./keys/srv3-ecdsa.key", "./keys/srv3-rsa.key")
+	privKey, err := keys.ReadHostKey("./keys/srv3-ecdsa.key")
 	if err != nil {
 		logrus.Errorf("ERROR GETTING CERT %v", err)
 		//panic(err)
 		return
 	}
-	logrus.Printf("pubkey %v", pubkey)
 	identify := libp2p.Identity(privKey)
 	routing := libp2p.Routing(func(h host.Host) (routing.PeerRouting, error) {
 		dualDHT, err := ddht.New(ctx, h, ddht.DHTOption(dht.Mode(dht.ModeServer), dht.ProtocolPrefix("/myapp"))) //в качестве dhtServer
