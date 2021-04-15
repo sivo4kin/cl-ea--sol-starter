@@ -32,7 +32,7 @@ testbls:
 test:
 	go test ./test -v
 
-all: goget build
+all: deps wrappers build
 
 CONTRACTSRC=$(shell find truffle/contracts -name '*.sol' || true)
 
@@ -45,8 +45,8 @@ solc:
 keys:
 	go run key/keygen.go --prefix srv3
 
-goget:
-	go mod tidy
+deps:
+	go mod download
 
 
 
